@@ -17,12 +17,10 @@
 class CI_MY_Model extends CI_Base_Mode {
 
     protected $primary_key = 'id';
+    protected $current_user_id_session_key = 'user_id';
 
-    public function __construct(){
-        $this->current_user_resolver = function(){
-          return 1;
-        };
-
-        parent::__construct();
+    protected function get_current_user()
+    {
+        return 1;
     }
 }

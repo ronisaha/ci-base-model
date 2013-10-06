@@ -41,6 +41,9 @@ class MY_Model_Mock_DB
     public function query() { }
     public function num_rows() { }
     public function affected_rows() { }
+    public function insert_batch() { }
+    public function update_batch() { }
+    public function escape($v) {return $v; }
     public function list_fields() {return array(); }
     public function last_query() {return 'the_last_query'; }
     public function insert_string() {return 'the_insert_string'; }

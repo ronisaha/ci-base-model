@@ -132,8 +132,6 @@ class CI_Base_Mode extends CI_Model
      */
     protected $num_rows = NULL;
 
-    protected $current_user_resolver = null;
-
     /* --------------------------------------------------------------
      * GENERIC METHODS
      * ------------------------------------------------------------ */
@@ -290,17 +288,22 @@ class CI_Base_Mode extends CI_Model
      */
     public function __call($method, $args)
     {
-        $watch = array('findBy', 'findAllBy', 'findFieldBy');
+        $watch = array('find_by', 'find_all_by', 'find_field_by', 'findBy', 'findAllBy', 'findFieldBy');
 
         foreach ($watch as $found) {
+            if ($method == $found) {
+                break;
+            }
             if (stristr($method, $found)) {
-                $field = strtolower(str_replace($found, '', $method));
+                $field = $this->underscore_from_camel_case(ltrim(str_replace($found, '', $method), '_'));
+                $found = $this->underscore_from_camel_case($found);
                 return $this->$found($field, $args);
             }
         }
+
         $method = self::underscore_from_camel_case($method);
 
-        if(is_callable(array($this, $method))){
+        if (is_callable(array($this, $method))) {
             return call_user_func_array(array($this, $method), $args);
         }
     }
@@ -360,7 +363,7 @@ class CI_Base_Mode extends CI_Model
      *
      * @return bool
      */
-    public function findBy($field, $value, $fields = '*', $order = NULL)
+    public function find_by($field, $value, $fields = '*', $order = NULL)
     {
         $arg_list = array();
         if (is_array($value)) {
@@ -384,7 +387,7 @@ class CI_Base_Mode extends CI_Model
      *
      * @return mixed
      */
-    public function findAllBy($field, $value, $fields = '*', $order = NULL, $start = 0, $limit = NULL)
+    public function find_all_by($field, $value, $fields = '*', $order = NULL, $start = 0, $limit = NULL)
     {
         $arg_list = array();
         if (is_array($value)) {
@@ -397,7 +400,7 @@ class CI_Base_Mode extends CI_Model
         $limit  = isset($arg_list[4]) ? $arg_list[4] : $limit;
 
         $where = array($field => $value);
-        return $this->findAll($where, $fields, $order, $start, $limit);
+        return $this->find_all($where, $fields, $order, $start, $limit);
     }
 
     /**
@@ -409,16 +412,19 @@ class CI_Base_Mode extends CI_Model
      *
      * @return mixed
      */
-    public function findFieldBy($field, $value, $fields = '*', $order = NULL)
+    public function find_field_by($field, $value, $fields = '*', $order = NULL)
     {
         $arg_list = array();
+
         if (is_array($value)) {
             $arg_list = $value;
             $value = $arg_list[0];
         }
+
         $fields = isset($arg_list[1]) ? $arg_list[1] : $fields;
         $order = isset($arg_list[2]) ? $arg_list[2] : $order;
         $where = array($field => $value);
+
         return $this->field($where, $fields, $fields, $order);
     }
 
@@ -444,16 +450,23 @@ class CI_Base_Mode extends CI_Model
 
             return $insert_id;
         }
-        else
-        {
-            return FALSE;
-        }
+
+        return FALSE;
     }
 
     /**
      * Insert multiple rows into the table. Returns an array of multiple IDs.
      */
-    public function insert_many($data, $skip_validation = FALSE)
+    public function insert_many($data, $skip_validation = FALSE, $insert_individual = false)
+    {
+        if($insert_individual){
+            return $this->_insert_individual($data, $skip_validation);
+        }
+
+        return $this->_insert_batch($data, $skip_validation);
+    }
+
+    private function _insert_individual($data, $skip_validation = FALSE)
     {
         $ids = array();
 
@@ -463,6 +476,26 @@ class CI_Base_Mode extends CI_Model
         }
 
         return $ids;
+    }
+
+    private function _insert_batch($data, $skip_validation = FALSE)
+    {
+        $_data = array();
+        foreach ($data as $key => $row)
+        {
+            if ($skip_validation === FALSE)
+            {
+                $row = $this->validate($row);
+            }
+
+            if($row === FALSE){
+                continue;
+            }
+
+            $_data[$key] = $this->trigger('before_create', $row);
+        }
+
+        return $this->_database->insert_batch($this->_table, $_data);
     }
 
     /**
@@ -560,6 +593,30 @@ class CI_Base_Mode extends CI_Model
     }
 
     /**
+     * Update all records
+     */
+    public function update_batch($data, $where_key)
+    {
+        $_data = array();
+
+        foreach ($data as $key => $row)
+        {
+            $_data[$key] = $this->trigger('before_create', $row);
+            if($row === FALSE){
+                continue;
+            }
+
+            $_data[$key] = $row;
+        }
+
+        $result = $this->_database->update_batch($this->_table, $data, $where_key);
+
+        return $result;
+    }
+
+
+
+    /**
      * @param null $data
      * @param null $update
      *
@@ -569,6 +626,10 @@ class CI_Base_Mode extends CI_Model
     {
         if (is_null($data)) {
             return FALSE;
+        }
+
+        if (is_null($update)) {
+            $update = $data;
         }
 
         $sql = $this->_duplicate_insert_sql($data, $update);
@@ -582,17 +643,11 @@ class CI_Base_Mode extends CI_Model
      *
      * @return string
      */
-    protected function _duplicate_insert_sql($values, $update = NULL)
+    protected function _duplicate_insert_sql($values, $update)
     {
-        $table = $this->_database->_protect_identifiers($this->_table);
-
         $updateStr = array();
         $keyStr    = array();
         $valStr    = array();
-
-        if (is_null($update)) {
-            $update = $values;
-        }
 
         $values = $this->trigger('before_create', $values);
         $update = $this->trigger('before_update', $update);
@@ -606,7 +661,7 @@ class CI_Base_Mode extends CI_Model
             $updateStr[] = $key . " = '{$val}'";
         }
 
-        $sql = "INSERT INTO " . $table . " (" . implode(', ', $keyStr) . ") ";
+        $sql = "INSERT INTO `" . $this->_table . "` (" . implode(', ', $keyStr) . ") ";
         $sql .= "VALUES (" . implode(', ', $valStr) . ") ";
         $sql .= "ON DUPLICATE KEY UPDATE " . implode(", ", $updateStr);
 
@@ -1097,11 +1152,11 @@ class CI_Base_Mode extends CI_Model
     {
         if (is_object($row))
         {
-            $row->{$this->created_by_key} = call_user_func($this->current_user_resolver);
+            $row->{$this->created_by_key} = $this->get_current_user();
         }
         else
         {
-            $row[$this->created_by_key] = call_user_func($this->current_user_resolver);
+            $row[$this->created_by_key] = $this->get_current_user();
         }
 
         return $row;
@@ -1111,11 +1166,11 @@ class CI_Base_Mode extends CI_Model
     {
         if (is_object($row))
         {
-            $row->{$this->updated_by_key} = call_user_func($this->current_user_resolver);
+            $row->{$this->updated_by_key} = $this->get_current_user();
         }
         else
         {
-            $row[$this->updated_by_key] = call_user_func($this->current_user_resolver);
+            $row[$this->updated_by_key] = $this->get_current_user();
         }
 
         return $row;
@@ -1123,7 +1178,7 @@ class CI_Base_Mode extends CI_Model
 
     public function update_deleted_by($id)
     {
-        $this->_database->set($this->deleted_by_key, call_user_func($this->current_user_resolver));
+        $this->_database->set($this->deleted_by_key, $this->get_current_user());
         return $id;
     }
 
@@ -1255,7 +1310,7 @@ class CI_Base_Mode extends CI_Model
      *
      * @return mixed
      */
-    public function findAll($conditions = NULL, $fields = '*', $order = NULL, $start = 0, $limit = NULL)
+    public function find_all($conditions = NULL, $fields = '*', $order = NULL, $start = 0, $limit = NULL)
     {
         if ($conditions != NULL) {
             if (is_array($conditions)) {
@@ -1290,7 +1345,7 @@ class CI_Base_Mode extends CI_Model
      */
     public function find($conditions = NULL, $fields = '*', $order = NULL)
     {
-        $data = $this->findAll($conditions, $fields, $order, 0, 1);
+        $data = $this->find_all($conditions, $fields, $order, 0, 1);
 
         if ($data) {
             return $data[0];
@@ -1309,7 +1364,7 @@ class CI_Base_Mode extends CI_Model
      */
     public function field($conditions = NULL, $name, $fields = '*', $order = NULL)
     {
-        $data = $this->findAll($conditions, $fields, $order, 0, 1);
+        $data = $this->find_all($conditions, $fields, $order, 0, 1);
 
         if ($data) {
             $row = $data[0];
@@ -1336,10 +1391,16 @@ class CI_Base_Mode extends CI_Model
      * INTERNAL METHODS
      * ------------------------------------------------------------ */
 
+
     /**
      * Trigger an event and call its observers. Pass through the event name
      * (which looks for an instance variable $this->event_listeners[event_name] or $this->event_name), an array of
      * parameters to pass through and an optional 'last in interation' boolean
+     *
+     * @param $event
+     * @param bool|array|void|int $data
+     * @param bool $last
+     * @return bool|mixed
      */
     public function trigger($event, $data = FALSE, $last = TRUE)
     {
@@ -1500,7 +1561,7 @@ class CI_Base_Mode extends CI_Model
         }
 
         if ($this->soft_delete) {
-            if ($this->isFieldExist($this->deleted_by_key)) {
+            if ($this->isFieldExist($this->deleted_by_key) && $this->get_current_user()) {
                 $this->subscribe('before_delete', 'update_deleted_by','update_deleted_by');
             }
         }
@@ -1512,7 +1573,7 @@ class CI_Base_Mode extends CI_Model
         if ($this->blamable === NULL) {
             $this->blamable = $this->isFieldExist($this->created_by_key)
                 && $this->isFieldExist($this->updated_by_key)
-                && is_callable($this->current_user_resolver);
+                && $this->get_current_user();
         }
 
         if ($this->timestampable) {
@@ -1566,5 +1627,14 @@ class CI_Base_Mode extends CI_Model
     {
         $method = ($multi) ? 'result' : 'row';
         return $this->_temporary_return_type == 'array' ? $method . '_array' : $method;
+    }
+
+
+    /**
+     * you Must implement this function in MY_Model Class to use blamable an deleted_by feature
+     */
+    protected function get_current_user()
+    {
+        return false;
     }
 }

@@ -18,6 +18,7 @@ Key Features
 * Soft-Deletable
 * Timestampable
 * Easy to use
+* Support both CamelCase and underscore version of a function (you can use findAll/find_all both will do the same). As codeigniter's convention the library implemented in underscore version of the functions
 
 
 Synopsis
@@ -48,11 +49,13 @@ $this->post->delete(1);
 Installation/Usage
 ------------------
 
-Download and copy the MY\_Model.php and CI\_Base\_Model.php file into your _application/core_ folder. CodeIgniter will load and initialise this class automatically for you.(Assuming your configuration contain <code>$config['subclass_prefix'] = 'MY_';</code>)
+Download and copy the MY\_Model.php and CI\_Base\_Model.php file into your _application/core_ folder. CodeIgniter will load and initialise this class automatically for you.
 
 Extend your model classes from `MY_Model` and all the functionality will be baked in automatically. You may wondering why we use two file? Here are the benefits.
 * You can implement all your global implementation in MY_Model.
 * You can update CI_Base_Model any time. Your oun global implementation will not affected.
+
+**Note:** The **MY\_** prefix is the default prefix used to extend a class in CodeIgniter. If you have modified this in your **_application/config/config.php**, use your prefix as appropriate. and modify the MY_Model class
 
 Naming Conventions
 ------------------
@@ -323,20 +326,16 @@ Take, for example, a `Book_model`:
 
     class Book_model extends MY_Model { }
 
-We can enable blamable by setting the `$this->created_by_key` abd `$this->updated_by_key` key. And you need also set the $this->current_user_resolver callable first to get the current logged-in user id
+We can enable blamable by setting the `$this->created_by_key` abd `$this->updated_by_key` key. And you need to implement the get_current_user() function, in the MY_Model
 
     class Book_model extends MY_Model
     {
         protected $created_by_key = 'created_by';
         protected $updated_by_key = 'updated_by';
+    }
 
-        public function __construct(){
-            $this->current_user_resolver = function(){
-              return 1; //Your code to get the user id
-            };
-
-            parent::__construct();
-        }
+    class MY_Model extends CI_Base_Model{
+        protected $current_user_id_session_key = 'user_id';
     }
 
 Now, when you make a call to any of the `insert`, `update`, `update_` methods the Model will automatically insert/update the created_by/updated_by entry
@@ -356,7 +355,7 @@ Built-in Observers
         public $before_update = array( 'updated_at' );
     }
 
-**CI_Base_Model** also contains serialisation observers for serialising and unserialising native PHP objects. This allows you to pass complex structures like arrays and objects into rows and have it be serialised automatically in the background. Call the `serialize` and `unserialize` observers with the column name(s) as a parameter:
+**CI_Base_Model** also contains serialisation observers for serialising and unserializing native PHP objects. This allows you to pass complex structures like arrays and objects into rows and have it be serialised automatically in the background. Call the `serialize` and `unserialize` observers with the column name(s) as a parameter:
 
     class Event_model extends MY_Model
     {
@@ -384,13 +383,13 @@ class Post_model extends MY_Model
 Methods
 =========
 
-* findBy($field, $value, $fields, $order)
-* findBy{$field}($value, $fields, $order)
-* findAllBy($field, $value, $fields, $order, $start, $limit)
-* findAllBy{$field}($value, $fields, $order, $start, $limit)
-* findFieldBy($field, $value, $fields = '*', $order = NULL)
-* findFieldBy{$field}($value, $fields = '*', $order = NULL)
-* findAll($conditions, $fields, $order, $start, $limit)
+* find_by($field, $value, $fields, $order)  [alias findBy]
+* find_by_{$field}($value, $fields, $order) [alias findBy{$field}]
+* find_all_by($field, $value, $fields, $order, $start, $limit)  [alias findAllBy]
+* find_all_by_{$field}($value, $fields, $order, $start, $limit) [alias findAllBy{$field}]
+* find_field_by($field, $value, $fields = '*', $order = NULL)   [alias findFieldBy]
+* find_field_by_{$field}($value, $fields = '*', $order = NULL)  [alias findFieldBy{$field}]
+* find_all($conditions, $fields, $order, $start, $limit)        [alias findAll]
 * find($conditions, $fields, $order)
 * field($conditions, $name, $fields, $order)
 * get($id)
@@ -399,9 +398,14 @@ Methods
 * get_many(array $primary_values)
 * get_many_by()
 * find_count($conditions) [alias findCount]
-* insert($data)
-* update(primary_key, $data)
-* onDuplicateUpdate($data, $update)
+* insert($data, $skip_validation = FALSE)
+* insert_many($data, $skip_validation = FALSE, $insert_individual = false)
+* update($primary_value, $data, $skip_validation = FALSE)
+* update_many($primary_values, $data, $skip_validation = FALSE)
+* update_by()
+* update_all($data)
+* update_batch($data, $where_key)
+* on_duplicate_update($data, $update)
 * delete($id)
 * delete_by() //argument can be in any form supported by $this->db->where();
 * delete_many(array $primary_values) [alias deleteMany]

@@ -136,6 +136,60 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
         $this->assertEquals($this->model->get_all(), array('fake', 'records', 'here'));
     }
 
+    private function _expect_fake_find()
+    {
+        $this->model->_database->expects($this->once())
+            ->method('where')
+            ->with($this->equalTo(array('some_column'=>'1')));
+
+        $this->_expect_get();
+        $this->model->_database->expects($this->once())
+            ->method('result')
+            ->will($this->returnValue(array('fake', 'records', 'here')));
+    }
+
+    public function test_find()
+    {
+        $this->_expect_fake_find();
+        $this->assertEquals($this->model->find(array('some_column'=>'1')), 'fake');
+    }
+
+    public function test_find_all()
+    {
+        $this->_expect_fake_find();
+        $this->assertEquals($this->model->find_all(array('some_column'=>'1')), array('fake', 'records', 'here'));
+    }
+
+    public function test_find_all_in_camel_case_form()
+    {
+        $this->_expect_fake_find();
+        $this->assertEquals($this->model->findAll(array('some_column'=>'1')), array('fake', 'records', 'here'));
+    }
+
+    public function test_find_by()
+    {
+        $this->_expect_fake_find();
+        $this->assertEquals($this->model->find_by('some_column','1'), 'fake');
+    }
+
+    public function test_find_by_in_camel_case_form()
+    {
+        $this->_expect_fake_find();
+        $this->assertEquals($this->model->findBy('some_column','1'), 'fake');
+    }
+
+    public function test_find_by_some_column()
+    {
+        $this->_expect_fake_find();
+        $this->assertEquals($this->model->find_by_some_column('1'), 'fake');
+    }
+
+    public function test_find_by_some_column_in_camel_case_form()
+    {
+        $this->_expect_fake_find();
+        $this->assertEquals($this->model->findBySomeColumn('1'), 'fake');
+    }
+
     public function test_insert()
     {
         $this->model->_database->expects($this->once())
@@ -148,7 +202,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
         $this->assertEquals($this->model->insert(array('new' => 'data')), 123);
     }
 
-    public function test_insert_many()
+    public function test_insert_many_with_individual_insert()
     {
         $this->model->_database->expects($this->exactly(2))
                         ->method('insert')
@@ -157,7 +211,17 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
                         ->method('insert_id')
                         ->will($this->returnValue(123));
 
-        $this->assertEquals($this->model->insert_many(array(array('new' => 'data'), array('other' => 'data'))), array(123, 123));
+        $this->assertEquals($this->model->insert_many(array(array('new' => 'data'), array('other' => 'data')), true, true), array(123, 123));
+    }
+
+    public function test_insert_many_with_batch_insert()
+    {
+        $this->model->_database->expects($this->once())
+            ->method('insert_batch')
+            ->with($this->equalTo('records'), $this->equalTo(array(array('new' => 'data'), array('other' => 'data'))))
+            ->will($this->returnValue(123));
+
+        $this->assertEquals($this->model->insert_many(array(array('new' => 'data'), array('other' => 'data'))), 123);
     }
 
     public function test_update()
@@ -226,6 +290,34 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
                         ->will($this->returnValue(TRUE));
 
         $this->assertEquals($this->model->update_all(array('new' => 'data')), TRUE);
+    }
+
+    public function test_update_batch()
+    {
+        $this->model->_database->expects($this->once())
+            ->method('update_batch')
+            ->with($this->equalTo('records'), $this->equalTo(array(array('new' => 'data'), array('other' => 'data'))),$this->equalTo('new'))
+            ->will($this->returnValue(123));
+
+        $this->assertEquals($this->model->update_batch(array(array('new' => 'data'), array('other' => 'data')), 'new'), 123);
+    }
+
+    public function test_on_duplicate_update()
+    {
+        $data = array('new' => 'data');
+
+
+        $this->model->_database->expects($this->once())
+            ->method('escape')
+            ->with($this->equalTo('data'))
+            ->will($this->returnValue('data'));
+
+        $this->model->_database->expects($this->once())
+            ->method('query')
+            ->with($this->anything())
+            ->will($this->returnValue(123));
+
+        $this->assertEquals($this->model->on_duplicate_update($data, $data), 123);
     }
 
     public function test_delete()
@@ -741,6 +833,30 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
                         ->will($this->returnValue(array('fake_record_here')));
         
         $this->assertEquals($this->model->only_deleted()->get_all(), array('fake_record_here'));
+    }
+
+    public function test_soft_delete_future_delete()
+    {
+        $whenToDelete = (new \DateTime())->modify('+1 day')->format('Y-m-d H:i:s');
+
+        $this->model = new Soft_delete_modelCI();
+        $this->model->_database = $this->getMock('MY_Model_Mock_DB');
+
+        $this->model->_database->expects($this->once())
+            ->method('where')
+            ->with($this->equalTo('id'), $this->equalTo(2))
+            ->will($this->returnValue($this->model->_database));
+        $this->model->_database->expects($this->once())
+            ->method('set')
+            ->with($this->equalTo('deleted_at'), $this->equalTo($whenToDelete), $this->equalTo(TRUE))
+            ->will($this->returnValue($this->model->_database));
+
+        $this->model->_database->expects($this->once())
+            ->method('update')
+            ->with($this->equalTo('records'))
+            ->will($this->returnValue(TRUE));
+
+        $this->assertEquals($this->model->delete_at(2, $whenToDelete), TRUE);
     }
 
     /* --------------------------------------------------------------

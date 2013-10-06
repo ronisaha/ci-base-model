@@ -1,6 +1,8 @@
 CI_Base_Model
 =============
 
+[![Build Status](https://travis-ci.org/ronisaha/ci-base-model.png?branch=master)](https://travis-ci.org/ronisaha/ci-base-model)
+
 An extension of CodeIgniter's base Model class to remove repetition and increase productivity by providing a couple handy methods. Most of the functionality
 of CI_Base_Model taken from following two library
 * [http://github.com/jamierumbelow/codeigniter-base-model](http://github.com/jamierumbelow/codeigniter-base-model)

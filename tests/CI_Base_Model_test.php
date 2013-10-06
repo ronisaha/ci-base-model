@@ -837,7 +837,8 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_soft_delete_future_delete()
     {
-        $whenToDelete = (new \DateTime())->modify('+1 day')->format('Y-m-d H:i:s');
+        $whenToDelete = new \DateTime();
+        $whenToDelete = $whenToDelete->modify('+1 day')->format('Y-m-d H:i:s');
 
         $this->model = new Soft_delete_modelCI();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    colors="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true">
+	<testsuites>
+        <testsuite name="CI_BaseModel Test Suite">
+            <file>./tests/CI_Base_Model_test.php</file>
+        </testsuite>
+    </testsuites>
+</phpunit>

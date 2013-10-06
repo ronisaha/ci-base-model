@@ -3,7 +3,7 @@ CI_Base_Model
 
 An extension of CodeIgniter's base Model class to remove repetition and increase productivity by providing a couple handy methods. Most of the functionality
 of CI_Base_Model taken from following two library
-* [http://github.com/jamierumbelow/codeigniter-base-model](http://github.com/jamierumbelow/codeigniter-base-model) and
+* [http://github.com/jamierumbelow/codeigniter-base-model](http://github.com/jamierumbelow/codeigniter-base-model)
 * [https://github.com/phpfour/MY_Model](https://github.com/phpfour/MY_Model)
 
 
@@ -428,10 +428,10 @@ You can then run the tests using the `vendor/bin/phpunit` binary and specify the
     $ vendor/bin/phpunit
 
 
-Contributing to MY_Model
+Contributing to CI_Base_Model
 ------------------------
 
-If you find a bug or want to add a feature to MY_Model, great! In order to make it easier and quicker for me to verify and merge changes in, it would be amazing if you could follow these few basic steps:
+If you find a bug or want to add a feature to CI_Base_Model, great! In order to make it easier and quicker for me to verify and merge changes in, it would be amazing if you could follow these few basic steps:
 
 1. Fork the project.
 2. **Branch out into a new branch. `git checkout -b name_of_new_feature_or_bug`**

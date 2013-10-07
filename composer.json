@@ -1,6 +1,7 @@
 {
     "name": "xiidea/ci-base-model",
-    "version": "v2.0.0",
+    "version": "v1.3.0",
+    "type": "library",
     "homepage": "http://xiidea.github.io/ci-base-model",
     "description": "An extension of CodeIgniter's base Model class for providing a couple handy methods",
     "keywords": ["CI_Base_Model", "Codeigniter", "model", "crud"],
@@ -22,6 +23,6 @@
     ],
     "minimum-stability": "dev",
     "autoload": {
-        "classmap": ["CI_Base_Model.php"]
+        "classmap": ["src/CI_Base_Model.php"]
     }
 }

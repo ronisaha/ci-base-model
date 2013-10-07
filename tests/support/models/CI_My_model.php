@@ -14,7 +14,7 @@
  *
  */
 
-class CI_MY_Model extends CI_Base_Mode {
+class CI_MY_Model extends CI_Base_Model {
 
     protected $primary_key = 'id';
     protected $current_user_id_session_key = 'user_id';

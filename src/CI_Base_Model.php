@@ -14,7 +14,7 @@
  *
  */
 
-class CI_Base_Mode extends CI_Model
+class CI_Base_Model extends CI_Model
 {
 
     /* --------------------------------------------------------------

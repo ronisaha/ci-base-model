@@ -9,7 +9,7 @@
 
 include_once "MY_Model.php";
 
-class MY_Model extends CI_Base_Mode
+class MY_Model extends CI_Base_Model
 {
     protected function get_current_user()
     {

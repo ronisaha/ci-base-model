@@ -1462,8 +1462,16 @@ class CI_Base_Model extends CI_Model
     protected function apply_soft_delete_filter()
     {
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE) {
-            $check_operator = $this->_temporary_only_deleted ? ' <=' : ' >';
-            $this->_database->where($this->deleted_at_key . "$check_operator", 'NOW()');
+            if($this->_temporary_only_deleted)
+            {
+                $where = "`{$this->deleted_at_key}` <= NOW()";
+            }
+            else
+            {
+                $where = sprintf('(%1$s > NOW() OR %1$s IS NULL OR %1$s = \'0000-00-00 00:00:00\')', $this->deleted_at_key);
+            }
+
+            $this->_database->where($where);
         }
     }
 

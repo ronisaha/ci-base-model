@@ -761,7 +761,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
         $this->model->_database->expects($this->at(0))
                         ->method('where')
-                        ->with($this->equalTo('deleted_at >'), 'NOW()')
+                        ->with($this->equalTo("(deleted_at > NOW() OR deleted_at IS NULL OR deleted_at = '0000-00-00 00:00:00')"))
                         ->will($this->returnValue($this->model->_database));
         $this->model->_database->expects($this->at(1))
                         ->method('where')
@@ -786,7 +786,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
         $this->model->_database->expects($this->at(0))
                         ->method('where')
-                        ->with($this->equalTo('deleted_at >'),$this->equalTo('NOW()'))
+                        ->with($this->equalTo("(deleted_at > NOW() OR deleted_at IS NULL OR deleted_at = '0000-00-00 00:00:00')"))
                         ->will($this->returnValue($this->model->_database));
         
         $this->model->_database->expects($this->once())
@@ -825,7 +825,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
         $this->model->_database->expects($this->once())
                         ->method('where')
-                        ->with($this->equalTo('deleted_at <='), $this->equalTo('NOW()'))
+                        ->with($this->equalTo("`deleted_at` <= NOW()"))
                         ->will($this->returnValue($this->model->_database));
         $this->_expect_get();
         $this->model->_database->expects($this->once())

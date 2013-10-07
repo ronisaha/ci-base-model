@@ -1,5 +1,6 @@
 {
     "name": "xiidea/ci-base-model",
+    "version": "v2.0.0",
     "homepage": "http://xiidea.github.io/ci-base-model",
     "version": "dev-master",
     "description": "An extension of CodeIgniter's base Model class for providing a couple handy methods",

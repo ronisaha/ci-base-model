@@ -28,7 +28,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->model = new Record_modelCI();
+        $this->model = new Record_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
     }
 
@@ -43,14 +43,14 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_constructor_guesses_the_table_name()
     {
-        $this->model = new Record_modelCI();
+        $this->model = new Record_model();
 
         $this->assertEquals($this->model->get_table(), 'records');
     }
 
     public function test_constructor_guess_the_primary_key()
     {
-        $this->model = new Book_modelCI($this->model->_database, 'id');
+        $this->model = new Book_model($this->model->_database, 'id');
 
         $this->model->_database->expects($this->once())
             ->method('query')
@@ -368,7 +368,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_before_create_callbacks()
     {
-        $this->model = new Before_callback_modelCI();
+        $this->model = new Before_callback_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $row = array( 'one' => 'ONE', 'two' => 'TWO' );
@@ -383,7 +383,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_after_create_callbacks()
     {
-        $this->model = new After_callback_modelCI();
+        $this->model = new After_callback_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $this->model->_database->expects($this->once())
@@ -400,7 +400,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_before_update_callbacks()
     {
-        $this->model = new Before_callback_modelCI();
+        $this->model = new Before_callback_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $row = array( 'one' => 'ONE', 'two' => 'TWO' );
@@ -417,7 +417,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_after_update_callbacks()
     {
-        $this->model = new After_callback_modelCI();
+        $this->model = new After_callback_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $this->model->_database->expects($this->once())->method('where')->will($this->returnValue($this->model->_database));
@@ -434,7 +434,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_before_get_callbacks()
     {
-        $this->model = new Before_callback_modelCI();
+        $this->model = new Before_callback_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $self =& $this;
@@ -447,7 +447,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_after_get_callbacks()
     {
-        $this->model = new After_callback_modelCI();
+        $this->model = new After_callback_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $db_row = array( 'one' => 'ONE', 'two' => 'TWO' );
@@ -462,7 +462,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_before_delete_callbacks()
     {
-        $this->model = new Before_callback_modelCI();
+        $this->model = new Before_callback_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
         
         $self =& $this;
@@ -475,7 +475,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_after_delete_callbacks()
     {
-        $this->model = new After_callback_modelCI();
+        $this->model = new After_callback_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
         
         $this->model->_database->expects($this->once())->method('where')->will($this->returnValue($this->model->_database));
@@ -491,7 +491,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_callbacks_support_parameters()
     {
-        $this->model = new Callback_parameter_modelCI();
+        $this->model = new Callback_parameter_model();
 
         $self =& $this;
         $callback_parameters = array(
@@ -520,7 +520,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_protected_attributes()
     {
-        $this->model = new Protected_attributes_modelCI();
+        $this->model = new Protected_attributes_model();
         
         $author = array(
             'id' => 123,
@@ -550,7 +550,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
         $self =& $this;
 
-        $this->model = new Belongs_to_modelCI();
+        $this->model = new Belongs_to_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
         $this->model->load = $this->getMock('MY_Model_Mock_Loader');
 
@@ -586,7 +586,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
         $self =& $this;
 
-        $this->model = new Belongs_to_modelCI();
+        $this->model = new Belongs_to_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
         $this->model->load = $this->getMock('MY_Model_Mock_Loader');
 
@@ -615,7 +615,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
         $data = array( 'name' => 'Jamie', 'author_id' => 1 );
         $author = 'related object';
 
-        $this->model = new Belongs_to_modelCI();
+        $this->model = new Belongs_to_model();
         $this->model->author_model = m::mock(new Author_modelCI());
         $this->model->author_model->shouldReceive('get')
                                   ->andReturn($author);
@@ -656,7 +656,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     protected function _validatable_model($validate_pass_or_fail = TRUE)
     {
-        $model = new Validated_modelCI();
+        $model = new Validated_model();
         $model->form_validation = m::mock('form_validation_class');
         $model->form_validation->shouldIgnoreMissing();
         $model->form_validation->shouldReceive('run')
@@ -671,7 +671,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_soft_delete()
     {
-        $this->model = new Soft_delete_modelCI();
+        $this->model = new Soft_delete_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $this->model->_database->expects($this->once())
@@ -693,7 +693,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_soft_delete_custom_key()
     {
-        $this->model = new Soft_delete_modelCI('record_deleted_at');
+        $this->model = new Soft_delete_model('record_deleted_at');
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $this->model->_database->expects($this->once())
@@ -714,7 +714,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_soft_delete_by()
     {
-        $this->model = new Soft_delete_modelCI();
+        $this->model = new Soft_delete_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $this->model->_database->expects($this->once())
@@ -735,7 +735,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_soft_delete_many()
     {
-        $this->model = new Soft_delete_modelCI();
+        $this->model = new Soft_delete_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $this->model->_database->expects($this->once())
@@ -756,7 +756,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_soft_delete_get()
     {
-        $this->model = new Soft_delete_modelCI();
+        $this->model = new Soft_delete_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $this->model->_database->expects($this->at(0))
@@ -777,7 +777,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_soft_delete_dropdown()
     {
-        $this->model = new Soft_delete_modelCI();
+        $this->model = new Soft_delete_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $fake_row_1 = array( 'id' => 1, 'name' => 'Jamie' );
@@ -803,7 +803,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_with_deleted()
     {
-        $this->model = new Soft_delete_modelCI();
+        $this->model = new Soft_delete_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $this->model->_database->expects($this->exactly(1))
@@ -820,7 +820,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_only_deleted()
     {
-        $this->model = new Soft_delete_modelCI();
+        $this->model = new Soft_delete_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $this->model->_database->expects($this->once())
@@ -840,7 +840,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
         $whenToDelete = new \DateTime();
         $whenToDelete = $whenToDelete->modify('+1 day')->format('Y-m-d H:i:s');
 
-        $this->model = new Soft_delete_modelCI();
+        $this->model = new Soft_delete_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $this->model->_database->expects($this->once())
@@ -866,7 +866,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_serialize()
     {
-        $this->model = new Serialised_data_modelCI();
+        $this->model = new Serialised_data_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $data = array( 'name' => 'Jamie', 'awesomeness_level' => 1000000 );
@@ -880,7 +880,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_timestamps()
     {
-        $this->model = new Timestamp_modelCI();
+        $this->model = new Timestamp_model();
 
         $data = array( 'name' => 'Jamie' );
         $obj = (object)array( 'name' => 'Jamie' );
@@ -902,7 +902,7 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_blamable()
     {
-        $this->model = new Timestamp_modelCI();
+        $this->model = new Timestamp_model();
         $this->model->_database = $this->getMock('MY_Model_Mock_DB');
 
         $obj = (object)array( 'name' => 'Jamie' );

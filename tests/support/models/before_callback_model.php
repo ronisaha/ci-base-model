@@ -19,7 +19,7 @@
  * that throws an exception. We can then catch that in the tests to ensure callbacks work.
  */
 
-class Before_callback_modelCI extends CI_MY_Model
+class Before_callback_model extends CI_MY_Model
 {
     protected $before_create = array('test_data_callback', 'test_data_callback_two');
     protected $before_update = array('test_data_callback', 'test_data_callback_two');

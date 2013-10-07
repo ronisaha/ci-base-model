@@ -14,7 +14,7 @@
  *
  */
 
-class Soft_delete_modelCI extends CI_MY_Model
+class Soft_delete_model extends CI_MY_Model
 {
 	protected $deleted_at_key = 'deleted_at';
 

@@ -14,7 +14,7 @@
  *
  */
 
-class Validated_modelCI extends CI_MY_Model
+class Validated_model extends CI_MY_Model
 {
 	public $validate = array(
 		array( 'field' => 'name', 'label' => 'Name', 'rules' => 'required' ),

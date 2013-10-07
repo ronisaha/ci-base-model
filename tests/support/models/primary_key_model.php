@@ -14,7 +14,7 @@
  *
  */
 
-class Book_modelCI extends CI_MY_Model {
+class Book_model extends CI_MY_Model {
 
     protected $_table = 'books';
 

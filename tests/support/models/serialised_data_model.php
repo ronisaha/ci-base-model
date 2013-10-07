@@ -18,7 +18,7 @@
  * serialised_data_model.php contains a test model that includes serialising a columns
  */
 
-class Serialised_data_modelCI extends CI_MY_Model
+class Serialised_data_model extends CI_MY_Model
 {
 	public $before_create = array( 'serialize_row(data)' );
 	public $before_update = array( 'serialize_row(data)' );

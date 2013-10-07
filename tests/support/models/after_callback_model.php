@@ -19,7 +19,7 @@
  * that throws an exception. We can then catch that in the tests to ensure callbacks work.
  */
 
-class After_callback_modelCI extends CI_MY_Model
+class After_callback_model extends CI_MY_Model
 {
     protected $after_create = array('test_throw');
     protected $after_update = array('test_throw');

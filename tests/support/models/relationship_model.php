@@ -18,7 +18,7 @@
  * relationship_model.php contains a test model that has a belongs_to and has_many relationship
  */
 
-class Belongs_to_modelCI extends CI_MY_Model
+class Belongs_to_model extends CI_MY_Model
 {
     public $belongs_to = array( 'author' );
     public $has_many = array( 'comments' );

@@ -19,7 +19,7 @@
  * with embedded parameters
  */
 
-class Callback_parameter_modelCI extends CI_MY_Model
+class Callback_parameter_model extends CI_MY_Model
 {
 	public $callback = array('some_callback(some_param,another_param)');
 

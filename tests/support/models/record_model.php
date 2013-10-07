@@ -14,5 +14,5 @@
  *
  */
 
-class Record_modelCI extends CI_MY_Model {
+class Record_model extends CI_MY_Model {
 }

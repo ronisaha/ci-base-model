@@ -14,7 +14,7 @@
  *
  */
 
-class Blamable_modelCI extends CI_MY_Model
+class Blamable_model extends CI_MY_Model
 {
 	protected $created_at_by = 'created_by';
     protected $updated_at_by = 'updated_by';

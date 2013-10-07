@@ -14,7 +14,7 @@
  *
  */
 
-class Timestamp_modelCI extends CI_MY_Model
+class Timestamp_model extends CI_MY_Model
 {
 	protected $created_at_key = 'created_at';
 	protected $updated_at_key = 'updated_at';

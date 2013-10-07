@@ -18,7 +18,7 @@
  * protected_attributes_model.php contains a test model with protected attributes
  */
 
-class Protected_attributes_modelCI extends CI_MY_Model
+class Protected_attributes_model extends CI_MY_Model
 {
 	public $protected_attributes = array( 'id', 'hash' );
 }

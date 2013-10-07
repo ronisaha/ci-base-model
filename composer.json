@@ -1,28 +1,9 @@
 {
-    "name": "xiidea/ci-base-model",
-    "version": "v1.3.0",
-    "type": "library",
-    "homepage": "http://xiidea.github.io/ci-base-model",
-    "description": "An extension of CodeIgniter's base Model class for providing a couple handy methods",
-    "keywords": ["CI_Base_Model", "Codeigniter", "model", "crud"],
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Jamie Rumbelow",
-            "email": "jamie@jamierumbelow.net",
-            "homepage": "http://jamierumbelow.net"
-        },
-        {
-            "name": "Md Emran Hasan",
-            "email": "phpfour@gmail.com"
-        },
-        {
-            "name": "Roni Saha",
-            "email": "roni.cse@gmail.com"
-        }
-    ],
-    "minimum-stability": "dev",
-    "autoload": {
-        "classmap": ["src/CI_Base_Model.php"]
-    }
+	"require": {
+		"phpunit/phpunit": "3.7.*",
+		"mockery/mockery": ">=0.7.2"
+	},
+	"autoload": {
+		"classmap": [ "src", "tests/support/models" ]
+	}
 }

@@ -1,0 +1,541 @@
+<!doctype html>
+<!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
+<!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on http://github.com/jonrohan -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen"/>
+  <link rel="stylesheet" href="stylesheets/pygment_trac.css"/>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="javascripts/script.js"></script>
+
+  <title>CI Base Model</title>
+  <meta name="description" content="An extension of CodeIgniter's base Model class to remove repetition and increase productivity by providing a couple handy methods.">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+</head>
+
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1 class="title">CI Base Model</h1>
+    </header>
+    <div id="container">
+      <p class="tagline">An extension of CodeIgniter's base Model class to remove repetition and increase productivity by providing a couple handy methods.</p>
+      <div id="main" role="main">
+        <div class="download-bar">
+        <div class="inner">
+          <a href="https://github.com/ronisaha/ci-base-model/tarball/master" class="download-button tar"><span>Download</span></a>
+          <a href="https://github.com/ronisaha/ci-base-model/zipball/master" class="download-button zip"><span>Download</span></a>
+          <a href="https://github.com/ronisaha/ci-base-model" class="code">View CI Base Model on GitHub</a>
+        </div>
+        <span class="blc"></span><span class="trc"></span>
+        </div>
+        <article class="markdown-body">
+          <h1>
+<a name="ci_base_model" class="anchor" href="#ci_base_model"><span class="octicon octicon-link"></span></a>CI_Base_Model</h1>
+
+<p><a href="https://travis-ci.org/ronisaha/ci-base-model"><img src="https://travis-ci.org/ronisaha/ci-base-model.png?branch=master" alt="Build Status"></a></p>
+
+<p>An extension of CodeIgniter's base Model class to remove repetition and increase productivity by providing a couple handy methods. Most of the functionality
+of CI_Base_Model taken from following two library</p>
+
+<ul>
+<li><a href="http://github.com/jamierumbelow/codeigniter-base-model">http://github.com/jamierumbelow/codeigniter-base-model</a></li>
+<li><a href="https://github.com/phpfour/MY_Model">https://github.com/phpfour/MY_Model</a></li>
+</ul><h1>
+<a name="key-features" class="anchor" href="#key-features"><span class="octicon octicon-link"></span></a>Key Features</h1>
+
+<ul>
+<li>Basic CRUD Functionality</li>
+<li>validation-in-model</li>
+<li>Simple Event Callback system</li>
+<li>Blamable</li>
+<li>Soft-Deletable</li>
+<li>Timestampable</li>
+<li>Easy to use</li>
+<li>Support both CamelCase and underscore version of a function (you can use findAll/find_all both will do the same). As codeigniter's convention the library implemented in underscore version of the functions</li>
+</ul><h2>
+<a name="synopsis" class="anchor" href="#synopsis"><span class="octicon octicon-link"></span></a>Synopsis</h2>
+
+<div class="highlight highlight-php"><pre><span class="k">class</span> <span class="nc">Post_model</span> <span class="k">extends</span> <span class="nx">MY_Model</span> <span class="p">{</span> <span class="p">}</span>
+
+<span class="nv">$this</span><span class="o">-&gt;</span><span class="na">load</span><span class="o">-&gt;</span><span class="na">model</span><span class="p">(</span><span class="s1">'post_model'</span><span class="p">,</span> <span class="s1">'post'</span><span class="p">);</span>
+
+<span class="nv">$this</span><span class="o">-&gt;</span><span class="na">post</span><span class="o">-&gt;</span><span class="na">get_all</span><span class="p">();</span>
+
+<span class="nv">$this</span><span class="o">-&gt;</span><span class="na">post</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="nv">$this</span><span class="o">-&gt;</span><span class="na">post</span><span class="o">-&gt;</span><span class="na">get_by</span><span class="p">(</span><span class="s1">'title'</span><span class="p">,</span> <span class="s1">'Pigs CAN Fly!'</span><span class="p">);</span>
+<span class="nv">$this</span><span class="o">-&gt;</span><span class="na">post</span><span class="o">-&gt;</span><span class="na">get_many_by</span><span class="p">(</span><span class="s1">'status'</span><span class="p">,</span> <span class="s1">'open'</span><span class="p">);</span>
+<span class="c1">//or $this-&gt;post-&gt;getManyBy('status', 'open');</span>
+
+<span class="nv">$this</span><span class="o">-&gt;</span><span class="na">post</span><span class="o">-&gt;</span><span class="na">insert</span><span class="p">(</span><span class="k">array</span><span class="p">(</span>
+    <span class="s1">'status'</span> <span class="o">=&gt;</span> <span class="s1">'open'</span><span class="p">,</span>
+    <span class="s1">'title'</span> <span class="o">=&gt;</span> <span class="s2">"I'm too sexy for my shirt"</span>
+<span class="p">));</span>
+
+<span class="nv">$this</span><span class="o">-&gt;</span><span class="na">post</span><span class="o">-&gt;</span><span class="na">update</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span> <span class="s1">'status'</span> <span class="o">=&gt;</span> <span class="s1">'closed'</span> <span class="p">));</span>
+
+<span class="nv">$this</span><span class="o">-&gt;</span><span class="na">post</span><span class="o">-&gt;</span><span class="na">delete</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</pre></div>
+
+<h2>
+<a name="installationusage" class="anchor" href="#installationusage"><span class="octicon octicon-link"></span></a>Installation/Usage</h2>
+
+<p>Download and copy the MY_Model.php and CI_Base_Model.php file into your <em>application/core</em> folder. CodeIgniter will load and initialise this class automatically for you.</p>
+
+<p>Extend your model classes from <code>MY_Model</code> and all the functionality will be baked in automatically. You may wondering why we use two file? Here are the benefits.</p>
+
+<ul>
+<li>You can implement all your global implementation in MY_Model.</li>
+<li>You can update CI_Base_Model any time. Your oun global implementation will not affected.</li>
+</ul><p><strong>Note:</strong> The <strong>MY_</strong> prefix is the default prefix used to extend a class in CodeIgniter. If you have modified this in your <strong>_application/config/config.php</strong>, use your prefix as appropriate. and modify the MY_Model class</p>
+
+<h2>
+<a name="naming-conventions" class="anchor" href="#naming-conventions"><span class="octicon octicon-link"></span></a>Naming Conventions</h2>
+
+<p>This class will try to guess the name of the table to use, by finding the plural of the class name.</p>
+
+<p>For instance:</p>
+
+<pre><code>class Post_model extends MY_Model { }
+</code></pre>
+
+<p>...will guess a table name of <code>posts</code>. It also works with <code>_m</code>:</p>
+
+<pre><code>class Book_m extends MY_Model { }
+</code></pre>
+
+<p>...will guess <code>books</code>.</p>
+
+<p>If you need to set it to something else, you can declare the <em>$\</em>table_ instance variable and set it to the table name:</p>
+
+<pre><code>class Post_model extends MY_Model
+{
+    public $_table = 'blogposts';
+}
+</code></pre>
+
+<p>Some of the CRUD functions will try to guess your primary key ID column. You can overwrite this functionality by setting the <em>$primary\</em>key_ instance variable:</p>
+
+<pre><code>class Post_model extends MY_Model
+{
+    public $primary_key = 'post_id';
+}
+</code></pre>
+
+<h2>
+<a name="callbacksobservers" class="anchor" href="#callbacksobservers"><span class="octicon octicon-link"></span></a>Callbacks/Observers</h2>
+
+<p>There are many times when you'll need to alter your model data before it's inserted or returned. This could be adding timestamps, pulling in relationships or deleting dependent rows. The MVC pattern states that these sorts of operations need to go in the model. In order to facilitate this, <strong>CI_Base_Model</strong> contains a series of callbacks/observers -- methods that will be called at certain points.</p>
+
+<p>The default list of observers are as follows:</p>
+
+<ul>
+<li>$before_create</li>
+<li>$after_create</li>
+<li>$before_update</li>
+<li>$after_update</li>
+<li>$before_get</li>
+<li>$after_get</li>
+<li>$before_delete</li>
+<li>$after_delete</li>
+</ul><p>These are instance variables usually defined at the class level. They are arrays of methods on this class to be called at certain points. An example:</p>
+
+<div class="highlight highlight-php"><pre><span class="k">class</span> <span class="nc">Book_model</span> <span class="k">extends</span> <span class="nx">MY_Model</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="nv">$before_create</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span> <span class="s1">'timestamps'</span> <span class="p">);</span>
+
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">timestamps</span><span class="p">(</span><span class="nv">$book</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="nv">$book</span><span class="p">[</span><span class="s1">'created_at'</span><span class="p">]</span> <span class="o">=</span> <span class="nv">$book</span><span class="p">[</span><span class="s1">'updated_at'</span><span class="p">]</span> <span class="o">=</span> <span class="nb">date</span><span class="p">(</span><span class="s1">'Y-m-d H:i:s'</span><span class="p">);</span>
+        <span class="k">return</span> <span class="nv">$book</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p><strong>Remember to always always always return the <code>$row</code> object you're passed. Each observer overwrites its predecessor's data, sequentially, in the order the observers are defined.</strong></p>
+
+<p>Observers can also take parameters in their name, much like CodeIgniter's Form Validation library. Parameters are then accessed in <code>$this-&gt;callback_parameters</code>:</p>
+
+<pre><code>public $before_create = array( 'data_process(name)' );
+public $before_update = array( 'data_process(date)' );
+
+protected function data_process($row)
+{
+    $row[$this-&gt;callback_parameters[0]] = $this-&gt;_process($row[$this-&gt;callback_parameters[0]]);
+
+    return $row;
+}
+</code></pre>
+
+<h2>
+<a name="validation" class="anchor" href="#validation"><span class="octicon octicon-link"></span></a>Validation</h2>
+
+<p>MY_Model uses CodeIgniter's built in form validation to validate data on insert.</p>
+
+<p>You can enable validation by setting the <code>$validate</code> instance to the usual form validation library rules array:</p>
+
+<pre><code>class User_model extends MY_Model
+{
+    public $validate = array(
+        array( 'field' =&gt; 'email',
+               'label' =&gt; 'email',
+               'rules' =&gt; 'required|valid_email|is_unique[users.email]' ),
+        array( 'field' =&gt; 'password',
+               'label' =&gt; 'password',
+               'rules' =&gt; 'required' ),
+        array( 'field' =&gt; 'password_confirmation',
+               'label' =&gt; 'confirm password',
+               'rules' =&gt; 'required|matches[password]' ),
+    );
+}
+</code></pre>
+
+<p>Anything valid in the form validation library can be used here. To find out more about the rules array, please <a href="http://codeigniter.com/user_guide/libraries/form_validation.html#validationrulesasarray">view the library's documentation</a>.</p>
+
+<p>With this array set, each call to <code>insert()</code> or <code>update()</code> will validate the data before allowing  the query to be run. <strong>Unlike the CodeIgniter validation library, this won't validate the POST data, rather, it validates the data passed directly through.</strong></p>
+
+<p>You can skip the validation with <code>skip_validation()</code>:</p>
+
+<pre><code>$this-&gt;user_model-&gt;skip_validation();
+$this-&gt;user_model-&gt;insert(array( 'email' =&gt; 'blah' ));
+</code></pre>
+
+<p>Alternatively, pass through a <code>TRUE</code> to <code>insert()</code>:</p>
+
+<pre><code>$this-&gt;user_model-&gt;insert(array( 'email' =&gt; 'blah' ), TRUE);
+</code></pre>
+
+<p>Under the hood, this calls <code>validate()</code>.</p>
+
+<h2>
+<a name="protected-attributes" class="anchor" href="#protected-attributes"><span class="octicon octicon-link"></span></a>Protected Attributes</h2>
+
+<p>If you're lazy like me, you'll be grabbing the data from the form and throwing it straight into the model. While some of the pitfalls of this can be avoided with validation, it's a very dangerous way of entering data; any attribute on the model (any column in the table) could be modified, including the ID.</p>
+
+<p>To prevent this from happening, MY_Model supports protected attributes. These are columns of data that cannot be modified.</p>
+
+<p>You can set protected attributes with the <code>$protected_attributes</code> array:</p>
+
+<pre><code>class Post_model extends MY_Model
+{
+    public $protected_attributes = array( 'id', 'hash' );
+}
+</code></pre>
+
+<p>Now, when <code>update</code> is called, the attributes will automatically be removed from the array, and, thus, protected:</p>
+
+<pre><code>$this-&gt;post_model-&gt;update(1, array(
+    'id' =&gt; 2,
+    'hash' =&gt; 'aqe3fwrga23fw243fWE',
+    'title' =&gt; 'A new post'
+));
+
+// SQL: INSERT INTO posts (title) VALUES ('A new post')
+</code></pre>
+
+<h2>
+<a name="relationships" class="anchor" href="#relationships"><span class="octicon octicon-link"></span></a>Relationships</h2>
+
+<p><strong>MY_Model</strong> now has support for basic <em>belongs\</em>to_ and has_many relationships. These relationships are easy to define:</p>
+
+<pre><code>class Post_model extends MY_Model
+{
+    public $belongs_to = array( 'author' );
+    public $has_many = array( 'comments' );
+}
+</code></pre>
+
+<p>It will assume that a MY_Model API-compatible model with the singular relationship's name has been defined. By default, this will be <code>relationship_model</code>. The above example, for instance, would require two other models:</p>
+
+<pre><code>class Author_model extends MY_Model { }
+class Comment_model extends MY_Model { }
+</code></pre>
+
+<p>If you'd like to customise this, you can pass through the model name as a parameter:</p>
+
+<pre><code>class Post_model extends MY_Model
+{
+    public $belongs_to = array( 'author' =&gt; array( 'model' =&gt; 'author_m' ) );
+    public $has_many = array( 'comments' =&gt; array( 'model' =&gt; 'model_comments' ) );
+}
+</code></pre>
+
+<p>You can then access your related data using the <code>with()</code> method:</p>
+
+<pre><code>$post = $this-&gt;post_model-&gt;with('author')
+                         -&gt;with('comments')
+                         -&gt;get(1);
+</code></pre>
+
+<p>The related data will be embedded in the returned value from <code>get</code>:</p>
+
+<pre><code>echo $post-&gt;author-&gt;name;
+
+foreach ($post-&gt;comments as $comment)
+{
+    echo $message;
+}
+</code></pre>
+
+<p>Separate queries will be run to select the data, so where performance is important, a separate JOIN and SELECT call is recommended.</p>
+
+<p>The primary key can also be configured. For <em>belongs\</em>to_ calls, the related key is on the current object, not the foreign one. Pseudocode:</p>
+
+<pre><code>SELECT * FROM authors WHERE id = $post-&gt;author_id
+</code></pre>
+
+<p>...and for a <em>has\</em>many_ call:</p>
+
+<pre><code>SELECT * FROM comments WHERE post_id = $post-&gt;id
+</code></pre>
+
+<p>To change this, use the <code>primary_key</code> value when configuring:</p>
+
+<pre><code>class Post_model extends MY_Model
+{
+    public $belongs_to = array( 'author' =&gt; array( 'primary_key' =&gt; 'post_author_id' ) );
+    public $has_many = array( 'comments' =&gt; array( 'primary_key' =&gt; 'parent_post_id' ) );
+}
+</code></pre>
+
+<h2>
+<a name="arrays-vs-objects" class="anchor" href="#arrays-vs-objects"><span class="octicon octicon-link"></span></a>Arrays vs Objects</h2>
+
+<p>By default, MY_Model is setup to return objects using CodeIgniter's QB's <code>row()</code> and <code>result()</code> methods. If you'd like to use their array counterparts, there are a couple of ways of customising the model.</p>
+
+<p>If you'd like all your calls to use the array methods, you can set the <code>$return_type</code> variable to <code>array</code>.</p>
+
+<pre><code>class Book_model extends MY_Model
+{
+    protected $return_type = 'array';
+}
+</code></pre>
+
+<p>If you'd like just your <em>next</em> call to return a specific type, there are two scoping methods you can use:</p>
+
+<pre><code>$this-&gt;book_model-&gt;as_array()
+                 -&gt;get(1);
+$this-&gt;book_model-&gt;as_object()
+                 -&gt;get_by('column', 'value');
+</code></pre>
+
+<h2>
+<a name="soft-delete" class="anchor" href="#soft-delete"><span class="octicon octicon-link"></span></a>Soft Delete</h2>
+
+<p>By default, the delete mechanism works with an SQL <code>DELETE</code> statement. However, you might not want to destroy the data, you might instead want to perform a 'soft delete'.</p>
+
+<p>If you enable soft deleting, the deleted row will be marked as <code>deleted</code> rather than actually being removed from the database.</p>
+
+<p>Take, for example, a <code>Book_model</code>:</p>
+
+<pre><code>class Book_model extends MY_Model { }
+</code></pre>
+
+<p>We can enable soft delete by setting the <code>$this-&gt;deleted_at_key</code> key:</p>
+
+<pre><code>class Book_model extends MY_Model
+{
+    protected $deleted_at_key = 'deleted_at';
+}
+</code></pre>
+
+<p>By default, MY_Model expects a <code>Datetime</code> or <code>TIMESTAMP</code> column named <code>deleted_at</code>. If you'd like to customise this, you can set <code>$deleted_at_key</code>:</p>
+
+<pre><code>class Book_model extends MY_Model
+{
+    protected $deleted_at_key = 'book_deleted_at';
+}
+</code></pre>
+
+<p>If you wish to track the deleted by you can set <code>$deleted_by_key</code> member,</p>
+
+<pre><code>class Book_model extends MY_Model
+{
+    protected $deleted_at_key = 'book_deleted_at';
+    protected $deleted_by_key = 'book_deleted_by';
+}
+</code></pre>
+
+<p>Now, when you make a call to any of the <code>get_</code> methods, a constraint will be added to not withdraw deleted columns:</p>
+
+<pre><code>=&gt; $this-&gt;book_model-&gt;get_by('user_id', 1);
+-&gt; SELECT * FROM books WHERE user_id = 1 AND deleted &lt; NOW()
+</code></pre>
+
+<p>If you'd like to include deleted columns, you can use the <code>with_deleted()</code> scope:</p>
+
+<pre><code>=&gt; $this-&gt;book_model-&gt;with_deleted()-&gt;get_by('user_id', 1);
+-&gt; SELECT * FROM books WHERE user_id = 1
+</code></pre>
+
+<p>If you'd like to include only the columns that have been deleted, you can use the <code>only_deleted()</code> scope:</p>
+
+<pre><code>=&gt; $this-&gt;book_model-&gt;only_deleted()-&gt;get_by('user_id', 1);
+-&gt; SELECT * FROM books WHERE user_id = 1 AND deleted &gt;= NOW()
+</code></pre>
+
+<p>You can delete in future!!</p>
+
+<pre><code>=&gt; $this-&gt;book_model-&gt;delete_at(1, (new \DateTime())-&gt;modify('+1 day'));
+</code></pre>
+
+<h2>
+<a name="blamable" class="anchor" href="#blamable"><span class="octicon octicon-link"></span></a>Blamable</h2>
+
+<p>Take, for example, a <code>Book_model</code>:</p>
+
+<pre><code>class Book_model extends MY_Model { }
+</code></pre>
+
+<p>We can enable blamable by setting the <code>$this-&gt;created_by_key</code> abd <code>$this-&gt;updated_by_key</code> key. And you need to implement the get_current_user() function, in the MY_Model</p>
+
+<pre><code>class Book_model extends MY_Model
+{
+    protected $created_by_key = 'created_by';
+    protected $updated_by_key = 'updated_by';
+}
+
+class MY_Model extends CI_Base_Model{
+    protected $current_user_id_session_key = 'user_id';
+}
+</code></pre>
+
+<p>Now, when you make a call to any of the <code>insert</code>, <code>update</code>, <code>update_</code> methods the Model will automatically insert/update the created_by/updated_by entry</p>
+
+<pre><code>=&gt; $this-&gt;book_model-&gt;insert(array('title' =&gt; 'A new book'));
+-&gt; SQL: INSERT INTO books (title, updated_by) VALUES ('A new post', 1) //Assuming current user id is 1
+</code></pre>
+
+<h2>
+<a name="built-in-observers" class="anchor" href="#built-in-observers"><span class="octicon octicon-link"></span></a>Built-in Observers</h2>
+
+<p><strong>CI_Base_Model</strong> contains a few built-in observers. The timestamps (MySQL compatible) <code>created_at</code> and <code>updated_at</code> are now available as built-in observers:</p>
+
+<pre><code>class Post_model extends MY_Model
+{
+    public $before_create = array( 'created_at', 'updated_at' );
+    public $before_update = array( 'updated_at' );
+}
+</code></pre>
+
+<p><strong>CI_Base_Model</strong> also contains serialisation observers for serialising and unserializing native PHP objects. This allows you to pass complex structures like arrays and objects into rows and have it be serialised automatically in the background. Call the <code>serialize</code> and <code>unserialize</code> observers with the column name(s) as a parameter:</p>
+
+<pre><code>class Event_model extends MY_Model
+{
+    public $before_create = array( 'serialize_row(seat_types)' );
+    public $before_update = array( 'serialize_row(seat_types)' );
+    public $after_get = array( 'unserialize_row(seat_types)' );
+}
+</code></pre>
+
+<h2>
+<a name="database-connection" class="anchor" href="#database-connection"><span class="octicon octicon-link"></span></a>Database Connection</h2>
+
+<p>The class will automatically use the default database connection, and even load it for you if you haven't yet.</p>
+
+<p>You can specify a database connection on a per-model basis by declaring the <em>$\</em>db_group_ instance variable. This is equivalent to calling <code>$this-&gt;db-&gt;database($this-&gt;_db_group, TRUE)</code>.</p>
+
+<p>See <a href="http://ellislab.com/codeigniter/user-guide/database/connecting.html">"Connecting to your Database"</a> for more information.</p>
+
+<div class="highlight highlight-php"><pre><span class="k">class</span> <span class="nc">Post_model</span> <span class="k">extends</span> <span class="nx">MY_Model</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="nv">$_db_group</span> <span class="o">=</span> <span class="s1">'group_name'</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<h1>
+<a name="methods" class="anchor" href="#methods"><span class="octicon octicon-link"></span></a>Methods</h1>
+
+<ul>
+<li>find_by($field, $value, $fields, $order)  [alias findBy]</li>
+<li>find_by_{$field}($value, $fields, $order) [alias findBy{$field}]</li>
+<li>find_all_by($field, $value, $fields, $order, $start, $limit)  [alias findAllBy]</li>
+<li>find_all_by_{$field}($value, $fields, $order, $start, $limit) [alias findAllBy{$field}]</li>
+<li>find_field_by($field, $value, $fields = '*', $order = NULL)   [alias findFieldBy]</li>
+<li>find_field_by_{$field}($value, $fields = '*', $order = NULL)  [alias findFieldBy{$field}]</li>
+<li>find_all($conditions, $fields, $order, $start, $limit)        [alias findAll]</li>
+<li>find($conditions, $fields, $order)</li>
+<li>field($conditions, $name, $fields, $order)</li>
+<li>get($id)</li>
+<li>get_all()</li>
+<li>get_by()</li>
+<li>get_many(array $primary_values)</li>
+<li>get_many_by()</li>
+<li>find_count($conditions) [alias findCount]</li>
+<li>insert($data, $skip_validation = FALSE)</li>
+<li>insert_many($data, $skip_validation = FALSE, $insert_individual = false)</li>
+<li>update($primary_value, $data, $skip_validation = FALSE)</li>
+<li>update_many($primary_values, $data, $skip_validation = FALSE)</li>
+<li>update_by()</li>
+<li>update_all($data)</li>
+<li>update_batch($data, $where_key)</li>
+<li>on_duplicate_update($data, $update)</li>
+<li>delete($id)</li>
+<li>delete_by() //argument can be in any form supported by $this-&gt;db-&gt;where();</li>
+<li>delete_many(array $primary_values) [alias deleteMany]</li>
+<li>delete_at($id, $time) [alias deleteAt]</li>
+<li>delete_by_at($condition, $time) [alias deleteByAt]</li>
+<li>delete_many_at(array $primary_values, $time) [alias deleteManyAt]</li>
+<li>execute_query($query) [alias executeQuery]</li>
+<li>order_by($orders) [alias orderBy]</li>
+<li>dropdown() [can be called dropdown($name_field) or dropdown($key_field, $name_field)]</li>
+<li>subscribe($event, $observer, $handler_name)</li>
+<li>is_subscribed($event, $handler_name)</li>
+</ul><h2>
+<a name="unit-tests" class="anchor" href="#unit-tests"><span class="octicon octicon-link"></span></a>Unit Tests</h2>
+
+<p>MY_Model contains a robust set of unit tests to ensure that the system works as planned.</p>
+
+<p>Install the testing framework (PHPUnit) with Composer:</p>
+
+<pre><code>$ curl -s https://getcomposer.org/installer | php
+$ php composer.phar install
+</code></pre>
+
+<p>You can then run the tests using the <code>vendor/bin/phpunit</code> binary and specify the tests file:</p>
+
+<pre><code>$ vendor/bin/phpunit
+</code></pre>
+
+<h2>
+<a name="contributing-to-ci_base_model" class="anchor" href="#contributing-to-ci_base_model"><span class="octicon octicon-link"></span></a>Contributing to CI_Base_Model</h2>
+
+<p>If you find a bug or want to add a feature to CI_Base_Model, great! In order to make it easier and quicker for me to verify and merge changes in, it would be amazing if you could follow these few basic steps:</p>
+
+<ol>
+<li>Fork the project.</li>
+<li><strong>Branch out into a new branch. <code>git checkout -b name_of_new_feature_or_bug</code></strong></li>
+<li>Make your feature addition or bug fix.</li>
+<li><strong>Add tests for it. This is important so I don’t break it in a future version unintentionally.</strong></li>
+<li>Commit.</li>
+<li>Send me a pull request!</li>
+</ol>
+        </article>
+      </div>
+    </div>
+    <footer>
+      <div class="owner">
+      <p><a href="https://github.com/ronisaha" class="avatar"><img src="https://2.gravatar.com/avatar/ca69eafc435b9a74f622ad9a3d63f5f9?d=https%3A%2F%2Fidenticons.github.com%2F8840450ef58355f0cadcc00780e703aa.png&amp;s=30" width="48" height="48"/></a> <a href="https://github.com/ronisaha">ronisaha</a> maintains <a href="https://github.com/ronisaha/ci-base-model">CI Base Model</a></p>
+
+
+      </div>
+      <div class="creds">
+        <small>This page generated using <a href="https://pages.github.com/">GitHub Pages</a><br/>theme by <a href="https://twitter.com/jonrohan/">Jon Rohan</a></small>
+      </div>
+    </footer>
+  </div>
+  <div class="current-section">
+    <a href="#top">Scroll to top</a>
+    <a href="https://github.com/ronisaha/ci-base-model/tarball/master" class="tar">tar</a><a href="https://github.com/ronisaha/ci-base-model/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
+    <p class="name"></p>
+  </div>
+
+  
+</body>
+</html>

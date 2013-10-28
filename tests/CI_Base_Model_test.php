@@ -17,6 +17,19 @@
 use Mockery as m;
 
 require_once 'tests/support/test_helper.php';
+require_once 'tests/support/models/after_callback_model.php';
+require_once 'tests/support/models/before_callback_model.php';
+require_once 'tests/support/models/blamable_model.php';
+require_once 'tests/support/models/callback_parameter_model.php';
+require_once 'tests/support/models/CI_My_model.php';
+require_once 'tests/support/models/primary_key_model.php';
+require_once 'tests/support/models/protected_attributes_model.php';
+require_once 'tests/support/models/record_model.php';
+require_once 'tests/support/models/relationship_model.php';
+require_once 'tests/support/models/serialised_data_model.php';
+require_once 'tests/support/models/soft_delete_model.php';
+require_once 'tests/support/models/timestamp_model.php';
+require_once 'tests/support/models/validated_model.php';
 
 class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 {
@@ -57,6 +70,13 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
             ->with($this->equalTo("SHOW KEYS FROM `books` WHERE Key_name = 'PRIMARY'"))
             ->will($this->returnValue($this->model->_database))
         ;
+
+        $this->model->_database->expects($this->once())
+            ->method('dbprefix')
+            ->with($this->equalTo('books'))
+            ->will($this->returnValue('books'))
+        ;
+
         $this->model->_database->expects($this->once())
             ->method('row')
             ->will($this->returnValue((object)array('Column_name'=>'fake_primary_key')));

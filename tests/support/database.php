@@ -23,6 +23,7 @@ class MY_Model_Mock_DB
     /**
      * CI_DB
      */
+    public static $prefix = '';
     public function select() { }
     public function where() { }
     public function where_in() { }
@@ -43,6 +44,7 @@ class MY_Model_Mock_DB
     public function affected_rows() { }
     public function insert_batch() { }
     public function update_batch() { }
+    public function dbprefix($t = '') { return self::$prefix . $t; }
     public function escape($v) {return $v; }
     public function list_fields() {return array(); }
     public function last_query() {return 'the_last_query'; }

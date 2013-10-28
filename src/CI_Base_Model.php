@@ -6,7 +6,7 @@
  * @author  Jamie Rumbelow <http://jamierumbelow.net>
  * @author  Md Emran Hasan <phpfour@gmail.com>
  * @author  Roni Kumar Saha <roni.cse@gmail.com>
- * @version 2.0
+ * @version 2.1
  *
  * @link    http://github.com/jamierumbelow/codeigniter-base-model
  * @link    https://github.com/phpfour/MY_Model
@@ -281,31 +281,37 @@ class CI_Base_Model extends CI_Model
     }
 
     /**
-     * @param $method
+     * @param $methodName
      * @param $args
      *
      * @return mixed
      */
-    public function __call($method, $args)
+    public function __call($methodName, $args)
     {
         $watch = array('find_by', 'find_all_by', 'find_field_by', 'findBy', 'findAllBy', 'findFieldBy');
 
         foreach ($watch as $found) {
-            if ($method == $found) {
+            if ($methodName == $found) {
                 break;
             }
-            if (stristr($method, $found)) {
-                $field = $this->underscore_from_camel_case(ltrim(str_replace($found, '', $method), '_'));
-                $found = $this->underscore_from_camel_case($found);
-                return $this->$found($field, $args);
+            if (stristr($methodName, $found)) {
+                $field = $this->underscore_from_camel_case(ltrim(str_replace($found, '', $methodName), '_'));
+                $method = $this->underscore_from_camel_case($found);
+                return $this->$method($field, $args);
             }
         }
 
-        $method = self::underscore_from_camel_case($method);
+        $method = self::underscore_from_camel_case($methodName);
 
-        if (is_callable(array($this, $method))) {
+        if (method_exists($this, $method)) {
             return call_user_func_array(array($this, $method), $args);
         }
+
+        $trace = debug_backtrace(null, 1);
+        $errMsg = 'Undefined method : '. get_class($this) . "::" . $methodName . " called";
+
+        _exception_handler(E_USER_NOTICE, $errMsg, $trace[0]['file'], $trace[0]['line']);
+
     }
 
     public static function underscore_from_camel_case($str) {
@@ -634,7 +640,7 @@ class CI_Base_Model extends CI_Model
 
         $sql = $this->_duplicate_insert_sql($data, $update);
 
-        return $this->_database->query($sql);
+        return $this->execute_query($sql);
     }
 
     /**
@@ -661,7 +667,7 @@ class CI_Base_Model extends CI_Model
             $updateStr[] = $key . " = '{$val}'";
         }
 
-        $sql = "INSERT INTO `" . $this->_table . "` (" . implode(', ', $keyStr) . ") ";
+        $sql = "INSERT INTO `" . $this->_database->dbprefix($this->_table) . "` (" . implode(', ', $keyStr) . ") ";
         $sql .= "VALUES (" . implode(', ', $valStr) . ") ";
         $sql .= "ON DUPLICATE KEY UPDATE " . implode(", ", $updateStr);
 
@@ -998,7 +1004,7 @@ class CI_Base_Model extends CI_Model
     {
         return (int) $this->_database->select('AUTO_INCREMENT')
             ->from('information_schema.TABLES')
-            ->where('TABLE_NAME', $this->_table)
+            ->where('TABLE_NAME', $this->_database->dbprefix($this->get_table()))
             ->where('TABLE_SCHEMA', $this->_database->database)->get()->row()->AUTO_INCREMENT;
     }
 
@@ -1544,7 +1550,7 @@ class CI_Base_Model extends CI_Model
     {
         if($this->primary_key == NULl)
         {
-            $this->primary_key = $this->_database->query("SHOW KEYS FROM `".$this->_table."` WHERE Key_name = 'PRIMARY'")->row()->Column_name;
+            $this->primary_key = $this->execute_query("SHOW KEYS FROM `" . $this->_database->dbprefix($this->_table) . "` WHERE Key_name = 'PRIMARY'")->row()->Column_name;
         }
     }
 

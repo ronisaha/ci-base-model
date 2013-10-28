@@ -17,11 +17,11 @@
 use Mockery as m;
 
 require_once 'tests/support/test_helper.php';
+require_once 'tests/support/models/CI_My_model.php';
 require_once 'tests/support/models/after_callback_model.php';
 require_once 'tests/support/models/before_callback_model.php';
 require_once 'tests/support/models/blamable_model.php';
 require_once 'tests/support/models/callback_parameter_model.php';
-require_once 'tests/support/models/CI_My_model.php';
 require_once 'tests/support/models/primary_key_model.php';
 require_once 'tests/support/models/protected_attributes_model.php';
 require_once 'tests/support/models/record_model.php';

@@ -968,6 +968,7 @@ class CI_Base_Model extends CI_Model
     {
         $where = func_get_args();
         $this->_set_where($where);
+        $this->apply_soft_delete_filter();
 
         return $this->_database->count_all_results($this->_table);
     }
@@ -977,6 +978,8 @@ class CI_Base_Model extends CI_Model
      */
     public function count_all()
     {
+        $this->apply_soft_delete_filter();
+
         return $this->_database->count_all($this->_table);
     }
 
@@ -1401,7 +1404,7 @@ class CI_Base_Model extends CI_Model
     /**
      * Trigger an event and call its observers. Pass through the event name
      * (which looks for an instance variable $this->event_listeners[event_name] or $this->event_name), an array of
-     * parameters to pass through and an optional 'last in interation' boolean
+     * parameters to pass through and an optional 'last in iteration' boolean
      *
      * @param $event
      * @param bool|array|void|int $data

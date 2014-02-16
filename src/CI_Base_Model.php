@@ -684,7 +684,9 @@ class CI_Base_Model extends CI_Model
 
     public function getDatabase() {
         if(!$this->_database) {
-            $this->_database = $this->db;
+            if(isset($this->CI->db)){
+                $this->_database = $this->CI->db;
+            }
         }
 
         return $this->_database;

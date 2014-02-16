@@ -99,3 +99,14 @@ class Callback_Test_Exception extends MY_Model_Test_Exception
         parent::__construct($passed_object, 'Callback is being successfully thrown');
     }
 }
+
+function get_instance()
+{
+    global $_model;
+
+    if(!$_model){
+        $_model = new CI_Model();
+    }
+
+    return $_model;
+}

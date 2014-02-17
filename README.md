@@ -55,7 +55,7 @@ Download and copy the MY\_Model.php and CI\_Base\_Model.php file into your _appl
 
 Extend your model classes from `MY_Model` and all the functionality will be baked in automatically. You may wondering why we use two file? Here are the benefits.
 * You can implement all your global implementation in MY_Model.
-* You can update CI_Base_Model any time. Your oun global implementation will not affected.
+* You can update CI_Base_Model any time. Your own global implementation will not affected.
 
 **Note:** The **MY\_** prefix is the default prefix used to extend a class in CodeIgniter. If you have modified this in your **_application/config/config.php**, use your prefix as appropriate. and modify the MY_Model class
 

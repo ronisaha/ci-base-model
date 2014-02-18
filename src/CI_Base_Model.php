@@ -146,7 +146,7 @@ class CI_Base_Model extends CI_Model
         parent::__construct();
 
         if(!$this->CI){
-            $this->CI = &get_instance();
+            $this->CI = get_instance();
         }
 
         $this->load->helper('inflector');

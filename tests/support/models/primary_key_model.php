@@ -1,4 +1,5 @@
 <?php
+
 /**
  * An extension of CodeIgniter's base Model class to remove repetition and increase productivity by providing
  * a couple handy methods(powered by CI's query builder), validation-in-model support, event callbacks and more.
@@ -13,8 +14,8 @@
  * @link    https://github.com/ronisaha/ci-base-model
  *
  */
-
-class Book_model extends CI_MY_Model {
+class Book_model extends CI_MY_Model
+{
 
     protected $_table = 'books';
 
@@ -22,6 +23,7 @@ class Book_model extends CI_MY_Model {
     {
         $this->primary_key = $key;
         $this->_database = $database;
+        $this->config = new CI_Config();
         $this->_fetch_primary_key();
 
         return $this;

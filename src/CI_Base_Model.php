@@ -132,7 +132,7 @@ class CI_Base_Model extends CI_Model
      */
     protected $num_rows = NULL;
 
-    protected $CI;
+    private $_base_model_instance = NULL;
 
     /* --------------------------------------------------------------
      * GENERIC METHODS
@@ -144,10 +144,6 @@ class CI_Base_Model extends CI_Model
     public function __construct()
     {
         parent::__construct();
-
-        if(!$this->CI){
-            $this->CI = get_instance();
-        }
 
         $this->load->helper('inflector');
 
@@ -165,8 +161,14 @@ class CI_Base_Model extends CI_Model
      */
     protected function _initialize_schema()
     {
+        $this->_database = $this->db;
+
         $this->_fetch_table();
         $this->_fetch_primary_key();
+
+        if($this->primary_key == null && $this->is_base_model_instance()) {
+            return;
+        }
 
         $this->_fields = $this->get_fields();
 
@@ -207,7 +209,7 @@ class CI_Base_Model extends CI_Model
 
     /**
      * Fetch a single record based on an arbitrary WHERE call. Can be
-     * any valid value to $this->getDatabase()->where().
+     * any valid value to $this->_database->where().
      */
     public function get_by()
     {
@@ -221,7 +223,7 @@ class CI_Base_Model extends CI_Model
 
         $this->limit(1);
 
-        $result = $this->getDatabase()->get($this->_table);
+        $result = $this->_database->get($this->_table);
 
         $this->num_rows = count((array)$result);
 
@@ -241,7 +243,7 @@ class CI_Base_Model extends CI_Model
     {
         $this->apply_soft_delete_filter();
 
-        $this->getDatabase()->where_in($this->primary_key, $values);
+        $this->_database->where_in($this->primary_key, $values);
 
         return $this->get_all();
     }
@@ -262,7 +264,7 @@ class CI_Base_Model extends CI_Model
 
     /**
      * Fetch all the records in the table. Can be used as a generic call
-     * to $this->getDatabase()->get() with scoped methods.
+     * to $this->_database->get() with scoped methods.
      */
     public function get_all()
     {
@@ -270,7 +272,7 @@ class CI_Base_Model extends CI_Model
 
         $this->apply_soft_delete_filter();
 
-        $result = $this->getDatabase()->get($this->_table)
+        $result = $this->_database->get($this->_table)
             ->{$this->_return_type(1)}();
         $this->_temporary_return_type = $this->return_type;
 
@@ -354,18 +356,7 @@ class CI_Base_Model extends CI_Model
             return $this->$getter3();
         }
 
-        if(isset($this->CI->$name)){
-            return $this->CI->$name;
-        }
-
-        $trace = debug_backtrace();
-
-        trigger_error(
-            'Undefined property : ' . $name .
-            ' in ' . $trace[0]['file'] .
-            ' on line ' . $trace[0]['line'],
-            E_USER_NOTICE);
-        return NULL;
+        return parent::__get($name);
     }
 
 
@@ -457,8 +448,8 @@ class CI_Base_Model extends CI_Model
         {
             $data = $this->trigger('before_create', $data);
 
-            $this->getDatabase()->insert($this->_table, $data);
-            $insert_id = $this->getDatabase()->insert_id();
+            $this->_database->insert($this->_table, $data);
+            $insert_id = $this->_database->insert_id();
 
             $this->trigger('after_create', $insert_id);
 
@@ -509,7 +500,7 @@ class CI_Base_Model extends CI_Model
             $_data[$key] = $this->trigger('before_create', $row);
         }
 
-        return $this->getDatabase()->insert_batch($this->_table, $_data);
+        return $this->_database->insert_batch($this->_table, $_data);
     }
 
     /**
@@ -526,7 +517,7 @@ class CI_Base_Model extends CI_Model
 
         if ($data !== FALSE)
         {
-            $result = $this->getDatabase()->where($this->primary_key, $primary_value)
+            $result = $this->_database->where($this->primary_key, $primary_value)
                 ->set($data)
                 ->update($this->_table);
 
@@ -554,7 +545,7 @@ class CI_Base_Model extends CI_Model
 
         if ($data !== FALSE)
         {
-            $result = $this->getDatabase()->where_in($this->primary_key, $primary_values)
+            $result = $this->_database->where_in($this->primary_key, $primary_values)
                 ->set($data)
                 ->update($this->_table);
 
@@ -581,7 +572,7 @@ class CI_Base_Model extends CI_Model
         if ($this->validate($data) !== FALSE)
         {
             $this->_set_where($args);
-            $result = $this->getDatabase()->set($data)
+            $result = $this->_database->set($data)
                 ->update($this->_table);
             $this->trigger('after_update', array($data, $result));
 
@@ -599,7 +590,7 @@ class CI_Base_Model extends CI_Model
     public function update_all($data)
     {
         $data = $this->trigger('before_update', $data);
-        $result = $this->getDatabase()->set($data)
+        $result = $this->_database->set($data)
             ->update($this->_table);
         $this->trigger('after_update', array($data, $result));
 
@@ -623,7 +614,7 @@ class CI_Base_Model extends CI_Model
             $_data[$key] = $row;
         }
 
-        $result = $this->getDatabase()->update_batch($this->_table, $data, $where_key);
+        $result = $this->_database->update_batch($this->_table, $data, $where_key);
 
         return $result;
     }
@@ -668,28 +659,18 @@ class CI_Base_Model extends CI_Model
 
         foreach ($values as $key => $val) {
             $keyStr[] = $key;
-            $valStr[] = $this->getDatabase()->escape($val);
+            $valStr[] = $this->_database->escape($val);
         }
 
         foreach ($update as $key => $val) {
             $updateStr[] = $key . " = '{$val}'";
         }
 
-        $sql = "INSERT INTO `" . $this->getDatabase()->dbprefix($this->_table) . "` (" . implode(', ', $keyStr) . ") ";
+        $sql = "INSERT INTO `" . $this->_database->dbprefix($this->_table) . "` (" . implode(', ', $keyStr) . ") ";
         $sql .= "VALUES (" . implode(', ', $valStr) . ") ";
         $sql .= "ON DUPLICATE KEY UPDATE " . implode(", ", $updateStr);
 
         return $sql;
-    }
-
-    public function getDatabase() {
-        if(!$this->_database) {
-            if(isset($this->CI->db)){
-                $this->_database = $this->CI->db;
-            }
-        }
-
-        return $this->_database;
     }
 
     /**
@@ -708,10 +689,10 @@ class CI_Base_Model extends CI_Model
                 $time = $this->get_mysql_time($time);
             }
 
-            $this->getDatabase()->set($this->deleted_at_key, $time, $escape);
-            $result = $this->getDatabase()->update($this->_table);
+            $this->_database->set($this->deleted_at_key, $time, $escape);
+            $result = $this->_database->update($this->_table);
         } else {
-            $result = $this->getDatabase()->delete($this->_table);
+            $result = $this->_database->delete($this->_table);
         }
 
         return  $this->trigger('after_delete', $result);
@@ -739,7 +720,7 @@ class CI_Base_Model extends CI_Model
      */
     public function delete($id, $time = 'NOW()')
     {
-        $this->getDatabase()->where($this->primary_key, $id);
+        $this->_database->where($this->primary_key, $id);
 
         return $this->_delete($id, $time);
     }
@@ -804,7 +785,7 @@ class CI_Base_Model extends CI_Model
      */
     public function delete_many($primary_values, $time='NOW()')
     {
-        $this->getDatabase()->where_in($this->primary_key, $primary_values);
+        $this->_database->where_in($this->primary_key, $primary_values);
 
         return $this->_delete($primary_values, $time);
     }
@@ -815,7 +796,7 @@ class CI_Base_Model extends CI_Model
      */
     public function truncate()
     {
-        $result = $this->getDatabase()->truncate($this->_table);
+        $result = $this->_database->truncate($this->_table);
 
         return $result;
     }
@@ -927,7 +908,7 @@ class CI_Base_Model extends CI_Model
 
         $this->apply_soft_delete_filter();
 
-        $result = $this->getDatabase()->select(array($key, $value))
+        $result = $this->_database->select(array($key, $value))
             ->get($this->_table)
             ->result();
 
@@ -988,7 +969,7 @@ class CI_Base_Model extends CI_Model
         $this->_set_where($where);
         $this->apply_soft_delete_filter();
 
-        return $this->getDatabase()->count_all_results($this->_table);
+        return $this->_database->count_all_results($this->_table);
     }
 
     /**
@@ -998,7 +979,7 @@ class CI_Base_Model extends CI_Model
     {
         $this->apply_soft_delete_filter();
 
-        return $this->getDatabase()->count_all($this->_table);
+        return $this->_database->count_all($this->_table);
     }
 
     /**
@@ -1023,10 +1004,10 @@ class CI_Base_Model extends CI_Model
      */
     public function get_next_id()
     {
-        return (int) $this->getDatabase()->select('AUTO_INCREMENT')
+        return (int) $this->_database->select('AUTO_INCREMENT')
             ->from('information_schema.TABLES')
-            ->where('TABLE_NAME', $this->getDatabase()->dbprefix($this->get_table()))
-            ->where('TABLE_SCHEMA', $this->getDatabase()->database)->get()->row()->AUTO_INCREMENT;
+            ->where('TABLE_NAME', $this->_database->dbprefix($this->get_table()))
+            ->where('TABLE_SCHEMA', $this->_database->database)->get()->row()->AUTO_INCREMENT;
     }
 
     /**
@@ -1052,7 +1033,7 @@ class CI_Base_Model extends CI_Model
      */
     public function execute_query($sql)
     {
-        return $this->getDatabase()->query($sql);
+        return $this->_database->query($sql);
     }
 
     /**
@@ -1060,7 +1041,7 @@ class CI_Base_Model extends CI_Model
      */
     public function get_last_query()
     {
-        return $this->getDatabase()->last_query();
+        return $this->_database->last_query();
     }
 
     /**
@@ -1071,7 +1052,7 @@ class CI_Base_Model extends CI_Model
      */
     public function get_insert_string($data)
     {
-        return $this->getDatabase()->insert_string($this->get_table(), $data);
+        return $this->_database->insert_string($this->get_table(), $data);
     }
 
     /**
@@ -1087,7 +1068,7 @@ class CI_Base_Model extends CI_Model
      */
     public function get_insert_id()
     {
-        return $this->getDatabase()->insert_id();
+        return $this->_database->insert_id();
     }
 
     /**
@@ -1095,7 +1076,7 @@ class CI_Base_Model extends CI_Model
      */
     public function get_affected_rows()
     {
-        return $this->getDatabase()->affected_rows();
+        return $this->_database->affected_rows();
     }
 
 
@@ -1205,7 +1186,7 @@ class CI_Base_Model extends CI_Model
 
     public function update_deleted_by($id)
     {
-        $this->getDatabase()->set($this->deleted_by_key, $this->get_current_user());
+        $this->_database->set($this->deleted_by_key, $this->get_current_user());
         return $id;
     }
 
@@ -1265,7 +1246,7 @@ class CI_Base_Model extends CI_Model
      * ------------------------------------------------------------ */
 
     /**
-     * A wrapper to $this->getDatabase()->order_by()
+     * A wrapper to $this->_database->order_by()
      *
      * call the ci->db->order_by method as per provided param
      * The param can be string just like default order_by function expect
@@ -1296,7 +1277,7 @@ class CI_Base_Model extends CI_Model
         if (is_array($criteria)) { //Multiple order by provided!
             //check if we got single order by passed as array!!
             if (isset($criteria[1]) && (strtolower($criteria[1]) == 'asc' || strtolower($criteria[1]) == 'desc' || strtolower($criteria[1]) == 'random')) {
-                $this->getDatabase()->order_by($criteria[0], $criteria[1]);
+                $this->_database->order_by($criteria[0], $criteria[1]);
                 return $this;
             }
             foreach ($criteria as $key => $value)
@@ -1307,24 +1288,24 @@ class CI_Base_Model extends CI_Model
                     $order_criteria = is_int($key) ? $value : $key;
                     $lower_key = strtolower($value);
                     $order = ($lower_key == 'asc' || $lower_key == 'desc' || $lower_key == 'random') ? $value : null;
-                    $this->getDatabase()->order_by($order_criteria, $order);
+                    $this->_database->order_by($order_criteria, $order);
                 }
             }
 
             return $this;
         }
 
-        $this->getDatabase()->order_by($criteria, $order); //its a string just call db order_by
+        $this->_database->order_by($criteria, $order); //its a string just call db order_by
 
         return $this;
     }
 
     /**
-     * A wrapper to $this->getDatabase()->limit()
+     * A wrapper to $this->_database->limit()
      */
     public function limit($limit, $offset = 0)
     {
-        $this->getDatabase()->limit($limit, $offset);
+        $this->_database->limit($limit, $offset);
         return $this;
     }
 
@@ -1341,14 +1322,14 @@ class CI_Base_Model extends CI_Model
     {
         if ($conditions != NULL) {
             if (is_array($conditions)) {
-                $this->getDatabase()->where($conditions);
+                $this->_database->where($conditions);
             } else {
-                $this->getDatabase()->where($conditions, NULL, FALSE);
+                $this->_database->where($conditions, NULL, FALSE);
             }
         }
 
         if ($fields != NULL) {
-            $this->getDatabase()->select($fields);
+            $this->_database->select($fields);
         }
 
         if ($order != NULL) {
@@ -1356,7 +1337,7 @@ class CI_Base_Model extends CI_Model
         }
 
         if ($limit != NULL) {
-            $this->getDatabase()->limit($limit, $start);
+            $this->_database->limit($limit, $start);
         }
 
         return $this->get_all();
@@ -1498,7 +1479,7 @@ class CI_Base_Model extends CI_Model
                 $where = sprintf('(%1$s > NOW() OR %1$s IS NULL OR %1$s = \'0000-00-00 00:00:00\')', $this->deleted_at_key);
             }
 
-            $this->getDatabase()->where($where);
+            $this->_database->where($where);
         }
     }
 
@@ -1569,15 +1550,29 @@ class CI_Base_Model extends CI_Model
      */
     protected function _fetch_primary_key()
     {
-        if ($this->primary_key == NULL && $this->getDatabase()) {
-            $this->primary_key = $this->execute_query("SHOW KEYS FROM `" . $this->getDatabase()->dbprefix($this->_table) . "` WHERE Key_name = 'PRIMARY'")->row()->Column_name;
+        if($this->is_base_model_instance()) {
+            return;
         }
+
+        if ($this->primary_key == NULL && $this->_database) {
+            $this->primary_key = $this->execute_query("SHOW KEYS FROM `" . $this->_database->dbprefix($this->_table) . "` WHERE Key_name = 'PRIMARY'")->row()->Column_name;
+        }
+    }
+
+    private function is_base_model_instance()
+    {
+        if($this->_base_model_instance == null){
+            $subclass_prefix = $this->config->item('subclass_prefix');
+            $this->_base_model_instance = get_class($this) == $subclass_prefix . "Model";
+        }
+
+        return $this->_base_model_instance;
     }
 
     public function get_fields()
     {
-        if (empty($this->_fields) && $this->getDatabase()) {
-            $this->_fields = (array)$this->getDatabase()->list_fields($this->_table);
+        if (empty($this->_fields) && $this->_database) {
+            $this->_fields = (array)$this->_database->list_fields($this->_table);
         }
 
         return $this->_fields;
@@ -1638,19 +1633,19 @@ class CI_Base_Model extends CI_Model
     {
         if (count($params) == 1)
         {
-            $this->getDatabase()->where($params[0]);
+            $this->_database->where($params[0]);
         }
         else if(count($params) == 2)
         {
-            $this->getDatabase()->where($params[0], $params[1]);
+            $this->_database->where($params[0], $params[1]);
         }
         else if(count($params) == 3)
         {
-            $this->getDatabase()->where($params[0], $params[1], $params[2]);
+            $this->_database->where($params[0], $params[1], $params[2]);
         }
         else
         {
-            $this->getDatabase()->where($params);
+            $this->_database->where($params);
         }
     }
 

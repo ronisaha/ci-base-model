@@ -35,6 +35,7 @@ class CI_Model
 
         // Pretend CI has a loaded DB already.
         $this->db = new MY_Model_Mock_DB();
+        $this->config = new CI_Config();
     }
 
     public function __get($method) { }
@@ -100,13 +101,10 @@ class Callback_Test_Exception extends MY_Model_Test_Exception
     }
 }
 
-function get_instance()
+class CI_Config
 {
-    global $_model;
-
-    if(!$_model){
-        $_model = new CI_Model();
+    public function item()
+    {
+        return 'MY_';
     }
-
-    return $_model;
 }

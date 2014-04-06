@@ -19,6 +19,7 @@ Key Features
 * Blamable
 * Soft-Deletable
 * Timestampable
+* Multiple database group support
 * Easy to use
 * Support both CamelCase and underscore version of a function (you can use findAll/find_all both will do the same). As codeigniter's convention the library implemented in underscore version of the functions
 
@@ -371,14 +372,14 @@ Database Connection
 
 The class will automatically use the default database connection, and even load it for you if you haven't yet.
 
-You can specify a database connection on a per-model basis by declaring the _$\_db\_group_ instance variable. This is equivalent to calling `$this->db->database($this->_db_group, TRUE)`.
+You can specify a database connection on a per-model basis by declaring the _$\_database\_group_ .
 
 See ["Connecting to your Database"](http://ellislab.com/codeigniter/user-guide/database/connecting.html) for more information.
 
 ```php
 class Post_model extends MY_Model
 {
-    public $_db_group = 'group_name';
+    protected $_database_group = 'group_name';
 }
 ```
 

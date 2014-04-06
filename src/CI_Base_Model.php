@@ -31,7 +31,10 @@ class CI_Base_Model extends CI_Model
      * connection. This allows individual models to use different DBs
      * without overwriting CI's global $this->db connection.
      */
-    public $_database;
+    protected $_database;
+
+    protected $_database_group = null;
+    protected static $_connection_cache = array();
 
     /**
      * This model's default primary key or unique identifier.
@@ -161,7 +164,7 @@ class CI_Base_Model extends CI_Model
      */
     protected function _initialize_schema()
     {
-        $this->_database = $this->db;
+        $this->set_database($this->_database_group);
 
         $this->_fetch_table();
         $this->_fetch_primary_key();
@@ -944,6 +947,39 @@ class CI_Base_Model extends CI_Model
         $strategy($this->event_listeners[$event], $observer);
 
         return $this;
+    }
+
+    /**
+     * @param mixed $database
+     *
+     * @return $this
+     */
+    public function set_database($database = null)
+    {
+        switch (true) {
+            case ($database === null) :
+                $this->_database = $this->db;
+                break;
+            case is_string($database) :
+                $this->_database = $this->_load_database_by_group($database);
+                break;
+            case ($database instanceof CI_DB_driver):
+                $this->_database = $database;
+                break;
+            default :
+                show_error('You have specified an invalid database connection/group.');
+        }
+
+        return $this;
+    }
+
+    private function _load_database_by_group($group)
+    {
+        if (!isset(self::$_connection_cache[$group])) {
+            self::$_connection_cache[$group] = $this->load->database($group);
+        }
+
+        return self::$_connection_cache[$group];
     }
 
     protected function unsubscribe($event, $handler)

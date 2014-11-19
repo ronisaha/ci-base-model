@@ -106,16 +106,16 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_get_by()
     {
-        $this->model->_database->expects($this->once())
-                        ->method('where')
-                        ->with($this->equalTo('some_column'), $this->equalTo('some_value'))
-                        ->will($this->returnValue($this->model->_database));
-        $this->_expect_get();
-        $this->model->_database->expects($this->once())
-                        ->method('row')
-                        ->will($this->returnValue('fake_record_here'));
+        $this->_mock_get_by_call();
 
         $this->assertEquals($this->model->get_by('some_column', 'some_value'), 'fake_record_here');
+    }
+
+    public function test_get_by_alias()
+    {
+        $this->_mock_get_by_call();
+
+        $this->assertEquals($this->model->getBy('some_column', 'some_value'), 'fake_record_here');
     }
 
     public function test_get_many()
@@ -668,10 +668,27 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
 
     public function test_skip_validation()
     {
+        $data = array( 'name' => 'Jamie', 'sexyness' => 'loads' );
+        $this->model = new Validated_model();
+        $this->model->form_validation = m::mock('form_validation_class');
+        $this->model->form_validation->shouldReceive('run')->never();
+
+        $this->model->skip_validation();
+        $this->assertEquals($this->model->validate($data), $data);
+    }
+
+    public function test_skip_validation_settings()
+    {
         $ret = $this->model->skip_validation();
 
         $this->assertEquals($ret, $this->model);
-        $this->assertEquals($this->model->get_skip_validation(), TRUE);
+        $this->assertAttributeEquals(TRUE, 'skip_validation', $this->model);
+
+        $ret = $this->model->enable_validation();
+        $this->assertEquals($ret, $this->model);
+
+        $this->assertAttributeEquals(FALSE, 'skip_validation', $this->model);
+
     }
 
     protected function _validatable_model($validate_pass_or_fail = TRUE)
@@ -1105,6 +1122,18 @@ class CI_Base_Model_tests extends PHPUnit_Framework_TestCase
                         ->method('list_fields')
                         ->with($this->equalTo($this->model->table()))
                         ->will($this->returnValue($this->model->get_fields()));
+    }
+
+    private function _mock_get_by_call()
+    {
+        $this->model->_database->expects($this->once())
+            ->method('where')
+            ->with($this->equalTo('some_column'), $this->equalTo('some_value'))
+            ->will($this->returnValue($this->model->_database));
+        $this->_expect_get();
+        $this->model->_database->expects($this->once())
+            ->method('row')
+            ->will($this->returnValue('fake_record_here'));
     }
 
     /* --------------------------------------------------------------

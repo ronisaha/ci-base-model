@@ -8,4 +8,13 @@
             <file>./tests/CI_Base_Model_test.php</file>
         </testsuite>
     </testsuites>
+    <filter>
+        <whitelist>
+            <directory>./</directory>
+            <exclude>
+                <directory>./tests</directory>
+                <directory>./vendor</directory>
+            </exclude>
+        </whitelist>
+    </filter>
 </phpunit>

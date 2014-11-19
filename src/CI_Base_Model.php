@@ -317,9 +317,12 @@ class CI_Base_Model extends CI_Model
             return call_user_func_array(array($this, $method), $args);
         }
 
+        if(!function_exists('_exception_handler')) {
+            return null;
+        }
+
         $trace = debug_backtrace(null, 1);
         $errMsg = 'Undefined method : '. get_class($this) . "::" . $methodName . " called";
-
         _exception_handler(E_USER_NOTICE, $errMsg, $trace[0]['file'], $trace[0]['line']);
 
     }
@@ -440,12 +443,9 @@ class CI_Base_Model extends CI_Model
      * Insert a new row into the table. $data should be an associative array
      * of data to be inserted. Returns newly created ID.
      */
-    public function insert($data, $skip_validation = FALSE)
+    public function insert($data)
     {
-        if ($skip_validation === FALSE)
-        {
-            $data = $this->validate($data);
-        }
+        $data = $this->validate($data);
 
         if ($data !== FALSE)
         {
@@ -464,37 +464,37 @@ class CI_Base_Model extends CI_Model
 
     /**
      * Insert multiple rows into the table. Returns an array of multiple IDs.
+     * @param $data
+     * @param bool $insert_individual
+     * @return array
      */
-    public function insert_many($data, $skip_validation = FALSE, $insert_individual = false)
+    public function insert_many($data, $insert_individual = false)
     {
         if($insert_individual){
-            return $this->_insert_individual($data, $skip_validation);
+            return $this->_insert_individual($data);
         }
 
-        return $this->_insert_batch($data, $skip_validation);
+        return $this->_insert_batch($data);
     }
 
-    private function _insert_individual($data, $skip_validation = FALSE)
+    private function _insert_individual($data)
     {
         $ids = array();
 
         foreach ($data as $key => $row)
         {
-            $ids[] = $this->insert($row, $skip_validation, ($key == count($data) - 1));
+            $ids[] = $this->insert($row);
         }
 
         return $ids;
     }
 
-    private function _insert_batch($data, $skip_validation = FALSE)
+    private function _insert_batch($data)
     {
         $_data = array();
         foreach ($data as $key => $row)
         {
-            if ($skip_validation === FALSE)
-            {
-                $row = $this->validate($row);
-            }
+            $row = $this->validate($row);
 
             if($row === FALSE){
                 continue;
@@ -509,14 +509,11 @@ class CI_Base_Model extends CI_Model
     /**
      * Updated a record based on the primary value.
      */
-    public function update($primary_value, $data, $skip_validation = FALSE)
+    public function update($primary_value, $data)
     {
         $data = $this->trigger('before_update', $data);
 
-        if ($skip_validation === FALSE)
-        {
-            $data = $this->validate($data);
-        }
+        $data = $this->validate($data);
 
         if ($data !== FALSE)
         {
@@ -537,14 +534,10 @@ class CI_Base_Model extends CI_Model
     /**
      * Update many records, based on an array of primary values.
      */
-    public function update_many($primary_values, $data, $skip_validation = FALSE)
+    public function update_many($primary_values, $data)
     {
         $data = $this->trigger('before_update', $data);
-
-        if ($skip_validation === FALSE)
-        {
-            $data = $this->validate($data);
-        }
+        $data = $this->validate($data);
 
         if ($data !== FALSE)
         {
@@ -575,11 +568,7 @@ class CI_Base_Model extends CI_Model
         if ($this->validate($data) !== FALSE)
         {
             $this->_set_where($args);
-            $result = $this->_database->set($data)
-                ->update($this->_table);
-            $this->trigger('after_update', array($data, $result));
-
-            return $result;
+            return $this->_update($data);
         }
         else
         {
@@ -593,11 +582,8 @@ class CI_Base_Model extends CI_Model
     public function update_all($data)
     {
         $data = $this->trigger('before_update', $data);
-        $result = $this->_database->set($data)
-            ->update($this->_table);
-        $this->trigger('after_update', array($data, $result));
 
-        return $result;
+        return $this->_update($data);
     }
 
     /**
@@ -967,7 +953,13 @@ class CI_Base_Model extends CI_Model
                 $this->_database = $database;
                 break;
             default :
-                show_error('You have specified an invalid database connection/group.');
+                $msg = 'You have specified an invalid database connection/group.';
+
+                if(!function_exists('show_error')) {
+                    throw new Exception($msg);
+                }
+
+                show_error($msg);
         }
 
         return $this;
@@ -1024,15 +1016,18 @@ class CI_Base_Model extends CI_Model
     public function skip_validation()
     {
         $this->skip_validation = TRUE;
+
         return $this;
     }
 
     /**
-     * Get the skip validation status
+     * Tell the class to skip the insert validation
      */
-    public function get_skip_validation()
+    public function enable_validation()
     {
-        return $this->skip_validation;
+        $this->skip_validation = FALSE;
+
+        return $this;
     }
 
     /**
@@ -1701,5 +1696,18 @@ class CI_Base_Model extends CI_Model
     protected function get_current_user()
     {
         return false;
+    }
+
+    /**
+     * @param $data
+     * @return mixed
+     */
+    private function _update($data)
+    {
+        $result = $this->_database->set($data)
+            ->update($this->_table);
+        $this->trigger('after_update', array($data, $result));
+
+        return $result;
     }
 }

@@ -230,7 +230,7 @@ class CI_Base_Model extends CI_Model
 
         $this->num_rows = count((array)$result);
 
-        $row = $result->{$this->_return_type()}();
+        $row = $result->{$this->_get_return_type_method()}();
         $this->_temporary_return_type = $this->return_type;
 
         $row = $this->trigger('after_get', $row);
@@ -276,7 +276,7 @@ class CI_Base_Model extends CI_Model
         $this->apply_soft_delete_filter();
 
         $result = $this->_database->get($this->_table)
-            ->{$this->_return_type(1)}();
+            ->{$this->_get_return_type_method(true)}();
         $this->_temporary_return_type = $this->return_type;
 
         $this->num_rows = count($result);
@@ -304,6 +304,7 @@ class CI_Base_Model extends CI_Model
             if ($methodName == $found) {
                 break;
             }
+
             if (stristr($methodName, $found)) {
                 $field = $this->underscore_from_camel_case(ltrim(str_replace($found, '', $methodName), '_'));
                 $method = $this->underscore_from_camel_case($found);
@@ -317,13 +318,7 @@ class CI_Base_Model extends CI_Model
             return call_user_func_array(array($this, $method), $args);
         }
 
-        if(!function_exists('_exception_handler')) {
-            return null;
-        }
-
-        $trace = debug_backtrace(null, 1);
-        $errMsg = 'Undefined method : '. get_class($this) . "::" . $methodName . " called";
-        _exception_handler(E_USER_NOTICE, $errMsg, $trace[0]['file'], $trace[0]['line']);
+        return $this->_handle_exception($methodName);
 
     }
 
@@ -442,15 +437,12 @@ class CI_Base_Model extends CI_Model
     /**
      * Insert a new row into the table. $data should be an associative array
      * of data to be inserted. Returns newly created ID.
+     * @param $data
+     * @return bool
      */
     public function insert($data)
     {
-        $data = $this->validate($data);
-
-        if ($data !== FALSE)
-        {
-            $data = $this->trigger('before_create', $data);
-
+        if (false !== $data = $this->_do_pre_create($data)) {
             $this->_database->insert($this->_table, $data);
             $insert_id = $this->_database->insert_id();
 
@@ -459,7 +451,7 @@ class CI_Base_Model extends CI_Model
             return $insert_id;
         }
 
-        return FALSE;
+        return false;
     }
 
     /**
@@ -483,7 +475,9 @@ class CI_Base_Model extends CI_Model
 
         foreach ($data as $key => $row)
         {
-            $ids[] = $this->insert($row);
+            if(FALSE !== $row = $this->_do_pre_create($row)) {
+                $ids[] = $this->insert($row);
+            }
         }
 
         return $ids;
@@ -494,13 +488,9 @@ class CI_Base_Model extends CI_Model
         $_data = array();
         foreach ($data as $key => $row)
         {
-            $row = $this->validate($row);
-
-            if($row === FALSE){
-                continue;
+            if(FALSE !== $row = $this->_do_pre_create($row)){
+                $_data[$key] = $row;
             }
-
-            $_data[$key] = $this->trigger('before_create', $row);
         }
 
         return $this->_database->insert_batch($this->_table, $_data);
@@ -508,12 +498,13 @@ class CI_Base_Model extends CI_Model
 
     /**
      * Updated a record based on the primary value.
+     * @param $primary_value
+     * @param $data
+     * @return bool
      */
     public function update($primary_value, $data)
     {
-        $data = $this->trigger('before_update', $data);
-
-        $data = $this->validate($data);
+        $data = $this->_do_pre_update($data);
 
         if ($data !== FALSE)
         {
@@ -533,11 +524,13 @@ class CI_Base_Model extends CI_Model
 
     /**
      * Update many records, based on an array of primary values.
+     * @param $primary_values
+     * @param $data
+     * @return bool
      */
     public function update_many($primary_values, $data)
     {
-        $data = $this->trigger('before_update', $data);
-        $data = $this->validate($data);
+        $data = $this->_do_pre_update($data);
 
         if ($data !== FALSE)
         {
@@ -549,10 +542,8 @@ class CI_Base_Model extends CI_Model
 
             return $result;
         }
-        else
-        {
-            return FALSE;
-        }
+
+        return FALSE;
     }
 
     /**
@@ -563,49 +554,46 @@ class CI_Base_Model extends CI_Model
         $args = func_get_args();
         $data = array_pop($args);
 
-        $data = $this->trigger('before_update', $data);
+        $data = $this->_do_pre_update($data);
 
-        if ($this->validate($data) !== FALSE)
+        if ($data !== FALSE)
         {
             $this->_set_where($args);
             return $this->_update($data);
         }
-        else
-        {
-            return FALSE;
-        }
+
+        return FALSE;
     }
 
     /**
      * Update all records
+     * @param $data
+     * @return mixed
      */
     public function update_all($data)
     {
-        $data = $this->trigger('before_update', $data);
-
+        $data = $this->_do_pre_update($data);
         return $this->_update($data);
     }
 
     /**
      * Update all records
+     * @param $data
+     * @param $where_key
+     * @return
      */
     public function update_batch($data, $where_key)
     {
         $_data = array();
 
-        foreach ($data as $key => $row)
-        {
-            $_data[$key] = $this->trigger('before_create', $row);
-            if($row === FALSE){
-                continue;
-            }
+        foreach ($data as $key => $row) {
 
-            $_data[$key] = $row;
+            if (false !== $row = $this->_do_pre_update($row)) {
+                $_data[$key] = $row;
+            }
         }
 
-        $result = $this->_database->update_batch($this->_table, $data, $where_key);
-
-        return $result;
+        return $this->_database->update_batch($this->_table, $_data, $where_key);
     }
 
 
@@ -953,13 +941,7 @@ class CI_Base_Model extends CI_Model
                 $this->_database = $database;
                 break;
             default :
-                $msg = 'You have specified an invalid database connection/group.';
-
-                if(!function_exists('show_error')) {
-                    throw new Exception($msg);
-                }
-
-                show_error($msg);
+                $this->_show_error('You have specified an invalid database connection/group.');
         }
 
         return $this;
@@ -1620,10 +1602,12 @@ class CI_Base_Model extends CI_Model
             $this->soft_delete = $this->isFieldExist($this->deleted_at_key);
         }
 
-        if ($this->soft_delete) {
-            if ($this->isFieldExist($this->deleted_by_key) && $this->get_current_user()) {
-                $this->subscribe('before_delete', 'update_deleted_by','update_deleted_by');
-            }
+        if (!$this->soft_delete) {
+            return;
+        }
+
+        if ($this->isFieldExist($this->deleted_by_key) && $this->get_current_user()) {
+            $this->subscribe('before_delete', 'update_deleted_by','update_deleted_by');
         }
     }
 
@@ -1659,6 +1643,7 @@ class CI_Base_Model extends CI_Model
 
     /**
      * Set WHERE parameters, cleverly
+     * @param $params
      */
     protected function _set_where($params)
     {
@@ -1682,8 +1667,10 @@ class CI_Base_Model extends CI_Model
 
     /**
      * Return the method name for the current return type
+     * @param bool $multi
+     * @return string
      */
-    protected function _return_type($multi = FALSE)
+    protected function _get_return_type_method($multi = FALSE)
     {
         $method = ($multi) ? 'result' : 'row';
         return $this->_temporary_return_type == 'array' ? $method . '_array' : $method;
@@ -1709,5 +1696,54 @@ class CI_Base_Model extends CI_Model
         $this->trigger('after_update', array($data, $result));
 
         return $result;
+    }
+
+    /**
+     * @param $msg
+     */
+    private function _show_error($msg)
+    {
+        if (function_exists('show_error')) {
+            show_error($msg);
+        }
+    }
+
+    /**
+     * @param $data
+     * @return bool|mixed
+     */
+    private function _do_pre_update($data)
+    {
+        $data = $this->validate($data);
+        $data = $this->trigger('before_update', $data);
+
+        return $data;
+    }
+
+    /**
+     * @param $data
+     * @return bool|mixed
+     */
+    private function _do_pre_create($data)
+    {
+        $data = $this->validate($data);
+        $data = $this->trigger('before_create', $data);
+
+        return $data;
+    }
+
+    /**
+     * @param $methodName
+     * @return null
+     */
+    private function _handle_exception($methodName)
+    {
+        if (!function_exists('_exception_handler')) {
+            return null;
+        }
+
+        $trace = debug_backtrace(null, 1);
+        $errMsg = 'Undefined method : ' . get_class($this) . "::" . $methodName . " called";
+        _exception_handler(E_USER_NOTICE, $errMsg, $trace[0]['file'], $trace[0]['line']);
     }
 }
